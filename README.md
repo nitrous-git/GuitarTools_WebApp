@@ -1,64 +1,47 @@
-# Guitar Tools — Stage B technical POC
+# Guitar Tools
 
-Static HTML/CSS/JavaScript ES modules, with self-hosted alphaTab **1.8.4 + one
-local worker-getter fix**. No build, npm runtime, backend or CDN is required.
-This is the technical test bench, not the approved Stage A production UI.
+A lightweight, local-first web workspace for guitarists: a custom tuning library, a personal Guitar Pro song library, and a notation/player with a synchronized fretboard.
 
-## Run
+**Current state (2026-10-24):** Stage A visual direction **approved**; Stage B alphaTab proof of concept **implemented and working as a test bench**; Stage C0–C1 application shell **next**. The Stage C shell and custom Tuning Library have **not** been implemented yet.
 
-1. Extract the delivery ZIP over the root of your `stage-b-alphatab-poc` checkout.
-2. Serve that root using WebStorm's static server or another HTTP server
-   (optional: `python -m http.server 8000`). Open its `index.html` over HTTP.
-3. The bundled original exercise loads automatically. Click **Enable audio**,
-   wait for SoundFont loaded, then **Play**. Space also toggles playback when
-   focus is outside a form control.
-4. Try page/horizontal, zoom, visible/mute/solo, speed, pitch and fretboard track.
-   Use the seek slider or click the score. Loops select playback **occurrences**,
-   so repeated source bars have separate entries. Dragging over the score also
-   selects a range. For repeatable loops, use the occurrence selectors and checkbox.
-5. Choose a local Guitar Pro file. Parsing happens on-device; no files are
-   uploaded or persisted. Reloading discards the session. The 20 MiB limit is
-   a POC safeguard, not a promise about long-song performance.
+## Try the working Stage B reader
 
-Use **Load E4 pitch reference** for pitch checks. At -2 it sounds D4; at +2 F#4;
-TAB must remain open string 1. The diagnostic shows original beat fingerings,
-not transposed pitches or exact audio sustain. See the measured results and
-remaining gate checks in [docs/STAGE_B_RESULTS.md](docs/STAGE_B_RESULTS.md).
+The current `master` branch runs the Stage B technical POC. It imports a local `.gp3`, `.gp4`, `.gp5`, `.gpx` or `.gp` file, displays notation and TAB, provides page/horizontal layout and zoom, audio play/pause/stop/seek, speed, looping, track controls and playback-only pitch transposition, plus a diagnostic fretboard. Actual coverage varies by format and musical feature; see [Stage B results](docs/STAGE_B_RESULTS.md).
 
-## GitHub Pages
+1. Open this repository in WebStorm or another editor.
+2. Serve the repository root with a **static HTTP server**, for example WebStorm's built-in server or `python -m http.server 8000` (Python is optional, not an application dependency).
+3. Open `index.html` over `http://localhost:...`, **not** `file://`. The bundled, self-authored exercise loads automatically.
+4. Select **Enable audio**, then **Play**. Use the file picker for your own Guitar Pro files; inputs remain in browser memory and are not uploaded or saved in Stage B.
+5. Test both layouts, mute/solo, loop, seek, tempo/speed and ±2-semitone **audio-only** transposition. The original TAB fingering must not change.
 
-All URLs are module-relative and tested locally at `/GuitarTools_WebApp/`.
-After you push/deploy the desired branch/root, check the real HTTPS site:
+The currently bundled SDK is **alphaTab 1.8.4 with a documented one-line compatibility fix**. Never replace it with an unmodified distribution without repeating the regression tests. Vendor assets and notices: [assets/vendor/README.md](assets/vendor/README.md).
 
-- Score font, both layouts, cursor, local file chooser, and no console errors.
-- Enable audio and Play: worker, worklet, Bravura and Sonivox requests return 200.
-- Run your lawful GP3/4/5/GPX/GP7/GP8 fixtures, including drums and shared channels.
-- Try -2/+2 pitch, 50% speed, loops, seeks, mute/solo and mobile scrolling.
-- Verify your target Windows browser's audio/autoplay permissions.
+## Stage C: upcoming implementation
 
-Actual GitHub Pages deployment is **not tested**. No remote changes were made.
-`file://` is not supported; audio worklets require HTTPS or localhost.
+**Stable branch:** `master` (includes the Stage B code and Stage C planning documentation).  
+**Next working branch:** `stage-c-app-foundation`, to be created by the repository owner **from current `master`**, not from the earlier Stage B feature branch.
 
-## Optional developer tests
+- **C0:** safeguard the current reader and tests, record outstanding Stage B validation.
+- **C1:** production three-route application shell (`#/tuning`, `#/library`, `#/player`) using the approved dark charcoal/copper design language. Preserve the Stage B player on the Player page and keep the other pages truthful placeholders.
+- **C2–C5 (later deliveries):** tuning-domain logic, 6/7/8-string SVG headstocks, tuning persistence and backup, per-string audio audition, and QA.
+- **After Stage C:** song-file library and production player presentation.
 
-`node --test tests/model.test.mjs` — four model/parser tests, no dependencies.
+Read [Stage C0–C1 assignment](docs/ASTRA_STAGE_C0_C1_PROMPT.md) and [acceptance criteria](docs/STAGE_C_ACCEPTANCE.md). The roadmap is [docs/ROADMAP.md](docs/ROADMAP.md). Approved design reference is described in [design/DESIGN_REVIEW.md](design/DESIGN_REVIEW.md); mockup images are distributed separately and are **not** production assets.
 
-`node tests/browser.test.mjs` — requires Playwright installed for development
-and its Chromium browser (`npx playwright install chromium`). Optional environment
-variables: `PLAYWRIGHT_MODULE` (module path), `CHROMIUM_PATH` (browser executable),
-`SCREENSHOT_DIR` (existing temporary screenshot directory). The test starts its
-own static server under a repository subpath. Test dependencies are not deployed.
+## Deployment
 
-Use `?test` only for development; it exposes the adapter as `window.stageB` for
-assertions. The audio test taps the real AudioWorklet PCM and checks frequency;
-its access to `_worklet` is test-only and pinned-version-specific.
+Static HTML, CSS and vanilla JS ES modules; no React/Vite, mandatory runtime npm, backend or account. Github Pages can serve this project from `master` and repository root under `https://nitrous-git.github.io/GuitarTools_WebApp/` **if that Pages source is configured**. GitHub repository metadata alone does not establish whether Pages is deployed or passing tests. Validate the real HTTPS URL yourself after pushing.
 
-## Structure / licenses
+Assets must resolve under the `/GuitarTools_WebApp/` project subpath (not hard-coded `/assets/...`). The editor and tests can use development tools, but the deployed app must remain build-free.
 
-`src/services/alphaTabAdapter.js` owns SDK lifecycle, import, playback and pitch;
-`fretboardModel.js` converts original string positions and protects percussion;
-`src/ui/fretboard.js` renders diagnostics; `src/main.js` connects controls.
+## Development checks
 
-Vendor source, patch explanation and licenses are in `assets/vendor/README.md`.
-Fixture provenance is in `tests/fixtures/public/README.md`. New app code license
-remains undecided; bundled third-party licenses remain independent.
+- `node --test tests/model.test.mjs` — current Stage B pure-model checks (Node is for optional **development testing**, not runtime).
+- `node tests/browser.test.mjs` — optional Playwright Chromium suite; requires Playwright installed on the development machine and a compatible browser. It creates a local static HTTP test server under the repository subpath.
+- During C1, keep Stage B's existing `?test` automation entry and DOM/adapter contracts working, or update browser tests to provide equivalent-or-better assertions without losing coverage. Run both the Stage B regression and C0–C1 navigation tests.
+
+Historical Stage B observations include user-reported successful manual imports of **GPX and GP5**. Those observations complement, but do not replace, independent automated format tests. Additional GP3/GP4/GP7/GP8 native fixtures, cross-browser, shared MIDI channel and complex score validation remain open.
+
+## Source and rights
+
+The current app code's license has not been selected; bundled alphaTab (MPL-2.0), Bravura (SIL OFL) and Sonivox (Apache-2.0) retain their own notices. Do not commit copyrighted songs or third-party notation screenshots without redistribution rights. User-loaded Guitar Pro files are not published to GitHub.
