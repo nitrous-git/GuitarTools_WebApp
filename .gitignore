@@ -1,0 +1,20 @@
+# Editor and operating system
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+
+# Optional development tool outputs
+node_modules/
+dist/
+coverage/
+*.log
+
+# Private or user-provided test material must never be committed
+# (user-created / redistributable samples can live in tests/fixtures/public/).
+tests/fixtures/private/
+local-data/
+
+# Local generated bundles
+*.zip

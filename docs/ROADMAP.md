@@ -1,67 +1,49 @@
 # Guitar Tools — Implementation Roadmap v1
 
-This is a **phase-gated** plan. Each step should produce usable, testable output without partially implementing all pages at once.
+Sequential, compile/run-safe phases. Each phase has a demonstrable acceptance gate; don't let the lead agent redesign unrelated pages while implementing a feature.
 
-## P0 — Technical proof of concept (mandatory gate)
-- Create minimal static HTML/CSS/JS page loading a pinned alphaTab build.
-- Import one fixture for each format: `.gp3`, `.gp4`, `.gp5`, `.gpx` and `.gp` (GP7/GP8 if available).
-- Verify score rendering, vertical/page and horizontal layouts, zoom, SoundFont playback, seeking, looping, visibility/mute and current-note events.
-- Prove *audio-only* +2/-2 semitone pitch change without modifying staff/tab/fretboard positions. Inspect shared MIDI channels and percussion behavior.
-- Host a minimal test on GitHub Pages with repository subpath; inspect JS, worker/worklet, font, CORS and audio asset loading.
-- Deliver compatibility table with verified outcomes and limitations.
-**Accept:** a minimal reader runs on the target hosting environment and validates the most important musical invariants.
+Stage A (visual design): approved. **Stage B is P0** in this roadmap; start here.
 
-## P1 — Application shell and UI system
-- Modular static project, clean navigation, consistent tokens/typography, reusable basic controls/dialogs, dark and optional light theme.
-- Reserve responsive panels for Tuning, Library and Player. No giant marketing splash screen.
-**Accept:** all pages navigate correctly and essential views fit laptop screens with a sensible mobile fallback.
+## P0 — Research and Technical Proof of Concept (hard gate)
+Minimal static alphaTab demo on GitHub Pages under a repository subpath. Import one each `.gp3`, `.gp4`, `.gp5`, `.gpx`, `.gp` (GP7 and GP8 if available); render page and horizontal; play with SoundFont; loop; seek; zoom; switch tracks; mute/solo; demonstrate `+2` transposition on synth while staff and tab unchanged; verify events carry string/fret context. Log limitations.
+**Accept:** recorded file-format test table, version pinned, worker and asset paths validated, no false compatibility claims.
 
-## P2 — Complete Tuning Library
-- Build responsive SVG headstock variants (6/7/8 strings), string/peg mapping, independent note menus and playback per string.
-- Built-in presets, MIDI note model and note names with octaves, save/load/update/duplicate/delete, edit indicator, search/sort/categories and persistence.
-**Accept:** save a new 8-string tuning, audition all eight notes, reload and retrieve the exact mapping and sounding pitches.
+## P1 — App shell and visual system
+Static modular scaffolding, header/nav, shared tokens and responsive page architecture; clear active page; functional dialogs and theme selection. Establish desktop player split layout and simple mobile fallback. No unnecessary hero marketing screen.
+**Accept:** GitHub Pages serves all routes/assets with no broken links or layout overflow.
 
-## P3 — Song Library and backups
-- GP file multi-import/drop, parse metadata, retain original bytes, sort/search/collections/favorites, duplicate checks and song open action.
-- Build tested export/import recovery for songs and tunings. Expose error states and storage caveats.
-**Accept:** songs persist after reload, open without reupload, and round-trip from a backup into an empty browser profile.
+## P2 — Tuning Library (complete independent tool)
+Implement responsive SVG 6/7/8 headstocks, peg-to-string mapping, note choices, per-string audition, presets, save/load/update/duplicate/delete, category filters, search/sort, unsaved indicator, IndexedDB persistence. Proper note octave labels, no microphone tuner.
+**Accept:** create an 8-string custom tuning, hear each note, reload app and select saved preset to restore correct pegs and MIDI pitches.
 
-## P4 — Guitar Pro notation reader
-- Load song by library ID, present score metadata, track visibility, tab + notation / tab-only, Page and Horizontal views, zoom and bars-per-line.
-- Maintain clean settings panel and responsive score container.
-**Accept:** real multi-track samples render and respond correctly to every display control.
+## P3 — Song Library
+Import GP files via browser, safely store original blobs and metadata, create collections/tags, search/sort/favorite, duplicates, remove. Open player by local song ID. Add backup export/import of all user-owned tunings and songs.
+**Accept:** import multiple formats, close browser, reopen and find them; restore from backup to clean browser profile without data loss.
 
-## P5 — Playback and practice controls
-- Play/pause/stop/seek/progress, master volume, track mute/solo, loop range, +/- speed and reset, appropriate BPM and speed labels.
-- Implement non-destructive audio-only semitone shift, confirm correct isolation of pitched tracks from percussion, and test with actual scores.
-- Optionally add metronome/count-in after transport stabilizes.
-**Accept:** speed changes preserve musical pitch; audio transpose preserves written tabs; looping and seeking do not leave stuck audio/transport state.
+## P4 — Notation Reader
+Integrate alphaTab adapter, imported song loading, metadata panel, track visibility settings and tab/notation toggles. Page with auto or 2/3/4 bars per row; horizontal continuous scroll, zoom. Ensure no extra transforms of original file.
+**Accept:** same file looks correct in both directions; multi-track visibility selection works and zoom does not truncate tabs.
 
-## P6 — Synchronized fretboard
-- Independent selected-track fretboard model and drawing component supporting 6/7/8 strings, track tuning/capo, current-bar muted notes and bright current-note(s).
-- Handle rests, simultaneous chord notes, separate voices, ties, repeats, loops, seeking and selection changes.
-**Accept:** every active fret/string pair reflects original tab data even while audio-only transposition is enabled.
+## P5 — Playback and Practice Controls
+SoundFont MIDI play/pause/seek, BPM/speed +/- reset, volume, solo/mute, loop selection, progress, keyboard controls, optional metronome/count-in; pitch-only audio transpose implemented/tested. Tempo-change songs display honest speed/current BPM handling.
+**Accept:** slowing down doesn't change musical pitch; pitch transpose doesn't change tab/notation or fingering; loops accurately and doesn't leave stuck notes.
 
-## P7 — Release-quality testing and polish
-- Format regression corpus, invalid inputs, performance on long/multitrack scores, mobile breakpoints, accessibility, keyboard shortcuts and theme consistency.
-- Audit storage migration and quota errors, backup recovery and library licenses/notices.
-**Accept:** stable tested deployment, no critical workflow regressions, concise README and known-limitations list.
+## P6 — Synchronized Fretboard
+Build original-score fretboard model based on selected stringed track and original tuning/capo; gray all source notes from current measure, yellow current beat/note(s). Include ties, rests, seeks, repeats, chords and alternate 7/8-string layouts; collapsible responsive panel.
+**Accept:** fretboard positions agree with original tabs at normal and transposed playback, after loops and seeks, with correct cleared/resting states.
 
-## P8 — Post-v1 (optional, separately scoped)
-- Practice bookmarks, per-measure annotations and history.
-- Safe GP7+ exports and limited conversion, with explicit fidelity/unsupported-feature warnings and round-trip verification.
-- Limited notation editing only after reliable import/export and preservation of originals.
-- Optional PWA/offline packaging and user-controlled data synchronization.
+## P7 — QA, accessibility, backup and release
+Full regression with representative corpus, keyboard semantics, contrast, mobile/desktop browser tests, data migration, quota errors, invalid/corrupt input, long-song performance, portable backup restore, attribution. Optionally add installable/offline PWA after stability.
+**Accept:** tested GitHub Pages release, no critical feature regressions; README and issue checklist updated.
 
-## Representative test set
-- Six-string riff, seven-string piece, eight-string piece.
-- Multitrack guitar + bass + drums with mute/solo and channel handling.
-- Several Guitar Pro file generations and alternate tunings/capo.
-- Time signature and tempo changes, repeats/alternate endings, tied notes, bends and slides.
-- Chords/simultaneous notes, rests, large files, duplicate files and corrupted files.
+## P8 — Post-v1 scope (not launch gate)
+Read-only note annotations, saved song bookmarks/sections, improved practice sessions, scored original audio synchronization, export as GP7+ and MIDI with fidelity warnings, **then** selective notation editing. Arbitrary old-version GP export is uncommitted and needs a separate technical feasibility study.
 
-## Astra work policy
-- Astra acts as project lead: maintain architecture, validate musical correctness, review integration and hold acceptance gates.
-- Delegate isolated CSS/SVG or simple tests to less costly models if available; do not delegate pitch semantics, MIDI channel behavior, storage migration or score/playback synchronization without senior review.
-- Short implementation prompts should name one phase, reference these documents, set acceptance tests, and demand complete source files in requested delivery form.
-- User controls Git and GitHub publishing unless they explicitly authorize mutations.
+## Agent work method
+- Astra: architecture and integration gates, cross-module data contracts, code review and acceptance verification.
+- Smaller sub-agents where available: isolated visual SVG work, straightforward CSS, static fixtures/tests, README/docs. Avoid giving musical data/pitch semantics, alphaTab lifecycle, or persistence migration to a weak unsupervised agent.
+- Short prompts referencing this pack, exact phase and target files; one phase per delivery and explicit smoke test. User controls repository actions unless requested otherwise.
+
+## Suggested acceptance test fixture corpus
+- 6-string simple riff, 7-string song, 8-string song, multi-track with drum track, song with tempo changes, repeats/endings, chord with simultaneous notes, sliding/hammer-ons/ties, altered string tuning + capo, several GP versions, malformed file, duplicate file, file with many tracks/bars.
+- For export phase, use round-trip compare on score semantics and explicitly describe unsupported features rather than promising lossless conversion.

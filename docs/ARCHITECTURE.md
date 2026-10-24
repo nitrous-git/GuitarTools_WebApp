@@ -1,54 +1,36 @@
-# Guitar Tools — Architecture v1
+# Guitar Tools — Technical Architecture v1
 
-## Deployment and framework choice
-- Browser-only HTML/CSS/modern JS ES modules, deployable directly from GitHub Pages.
-- A build tool is not required for production. Development tooling/tests may be optional but must not impose a required server or Vite runtime on deployment.
-- Test with repository subpaths, secure HTTPS contexts and asset URL base paths.
-- Prefer local copies of exact, tested third-party library distributions over references to moving `latest` tags. Account for web workers, audio worklets, music fonts and SoundFont paths.
+## Runtime
+Static GitHub Pages, plain HTML/CSS/JS ES modules. CDN allowed during prototyping but **production must pin an exact alphaTab release** and preferably host tested distributable JS, workers/worklets, fonts and licensed SoundFont under the site's own `assets/vendor/alphatab/` path. No Node/Vite *runtime*; optional local development tests are not a deployed dependency. Test site base-path behavior under `/repo-name/`.
 
-## Music technology
-**Primary recommendation: alphaTab** — Guitar Pro family reader, notation/tab rendering, score model, SoundFont playback, horizontal/page layouts, track selection and practice APIs. https://github.com/CoderLine/alphaTab
-
-**Secondary research reference: guitarpro-parser** — optional metadata/parser comparison. Do not introduce as a mandatory extra layer unless a specific tested deficiency requires it. https://github.com/emilienbev/guitarpro-parser
-
-**Functional reference: TuxGuitar** — study workflows and user experience, but do not import its Java desktop architecture into a vanilla web app. https://github.com/helge17/tuxguitar
-
-Maintain dependency/version/license records. alphaTab is MPL-2.0; font and sound bank assets have their own notice requirements. No proprietary tab pack or bundled copyrighted score files without rights.
+## Recommended libraries
+- Primary: [alphaTab](https://github.com/CoderLine/alphaTab) — GP3/4/5, GPX, GP7/8 import, notation SVG/canvas, MIDI SoundFont synthesis, playback, score API and GP7+ export. License MPL-2.0; accompanying fonts and SoundFont have separate licenses.
+- Secondary/reference: [guitarpro-parser](https://github.com/emilienbev/guitarpro-parser) — Apache-2.0 metadata extraction/reference, but its documented formats are GP3, GP5, GPX, GP7/8; **do not depend on it for GP4 without tests**. Avoid two conflicting models unless justified.
+- External reference: [TuxGuitar](https://github.com/helge17/tuxguitar) — Java desktop app (LGPL); learn UX/workflows but do not transplant desktop source into web architecture.
+- Browser primitives: Web Audio API for simple tuner preview, IndexedDB for stored file Blobs and collection metadata, Web Storage only for small transient UI settings if needed, File API for imports, Blob downloads for exports, crypto.subtle for hashes.
 
 ## Data flow
-```
-Local GP file selection/drop
-  -> format/size validation
-  -> alphaTab parsing + metadata extraction
-  -> IndexedDB (original binary Blob + indexed song record)
-  -> Song Library
-  -> Tab Player loading bytes from IndexedDB
-  -> alphaTab score / renderer / audio engine
-  -> playback events -> synchronized fretboard model
+`File picker/drop -> validation -> alphaTab import/metadata extraction -> IndexedDB(original Blob + song record) -> library index -> player load(original bytes) -> alphaTab score + synth events -> score renderer and separate fretboard view`
 
-Tuning form / SVG peg adjustments
-  -> canonical MIDI pitches
-  -> audition via Web Audio / playable licensed sample
-  -> IndexedDB tuning repository
-```
+`Tuning controls -> note MIDI numbers -> local audition synthesizer -> IndexedDB(tuning record)`
 
-## Proposed code organization
+## Suggested module boundaries
 ```
 index.html
 src/
-  app/App.js
-  app/router.js
-  domain/notes.js
-  domain/tunings.js
-  storage/db.js
+  app/App.js                 navigation, lifecycle
+  app/router.js              pages and route state
+  domain/notes.js            MIDI pitch <-> labels, guitar string logic
+  domain/tunings.js          presets, validation, headstock mappings
+  storage/db.js              IndexedDB version/migrations
   storage/tuningRepository.js
   storage/songRepository.js
   storage/backupService.js
-  services/tuningAudio.js
-  services/gpImport.js
-  services/alphaTabAdapter.js
-  services/playbackSession.js
-  services/fretboardModel.js
+  services/tuningAudio.js    audition (user-unlock audio)
+  services/gpImport.js       file sniffing, alphaTab adapter, metadata
+  services/alphaTabAdapter.js   only place to call most SDK methods
+  services/playbackSession.js  state, tempo ratio, solo/mute, transposition
+  services/fretboardModel.js selected track, notes in bar/beat, timeline
   ui/pages/TuningPage.js
   ui/pages/LibraryPage.js
   ui/pages/PlayerPage.js
@@ -56,66 +38,46 @@ src/
   ui/components/Fretboard.js
   ui/components/TrackPanel.js
   ui/components/PlayerControls.js
-  styles/tokens.css
-  styles/layout.css
-  styles/components.css
-  styles/tuning.css
-  styles/library.css
-  styles/player.css
-assets/vendor/alphatab/ # pinned JS/assets/fonts/sound bank
+  styles/{tokens,layout,components,player,tuning,library}.css
+assets/vendor/alphatab/   pinned library/worker/worklet/fonts/sf2
 ```
-Module paths are a target design, not a requirement to create empty files upfront. Favor coherent code over premature abstraction.
+Do not build a new music engraving engine. Do not scrape alphaTab's rendered SVG DOM for notes: consume score model and playback events. Separate track rendering from sound mixing and fretboard selection.
 
-## Model proposal
-```js
-Tuning = {
-  id, name, stringCount, notesLowToHigh: [midiNoteInteger],
-  categoryIds: [], description, isPreset, createdAt, updatedAt
-}
-Song = {
-  id, displayName, originalFilename, format, originalBlob,
-  checksum, title, artist, album, importedAt, updatedAt,
-  categoryIds: [], favorite, notes, metadata: { tempo, keySignature, tracks: [] }
-}
-Category = { id, name, kind: 'song' | 'tuning', createdAt }
-SongSession = {
-  songId, playbackSpeed, pitchOffsetSemitones, layoutMode, zoom,
-  displayedTrackIds: [], mutedTrackIds: [], fretboardTrackId
-}
-Preferences = { theme, previewVolume, defaultZoom }
+## Data model / schema proposal
 ```
-IndexedDB schema changes must be versioned with upgrade paths. `SongSession` values are *non-destructive UI/session preferences*, never replacements for the original file. Use stable IDs and make backup schema version explicit.
+Tuning { id, name, stringCount, notesLowToHigh: number[],
+  categoryIds: string[], description, isPreset, createdAt, updatedAt }
+Song { id, displayName, originalFilename, fileType, blob, checksum,
+  title, artist, album, importedAt, updatedAt, categoryIds: string[],
+  favorite, notes, metadata: {tempo, keySignature, tracksSummary} }
+Category { id, name, kind: 'song'|'tuning', createdAt }
+SongSession { songId, playbackSpeed, pitchOffsetSemitones,
+  layoutMode, zoom, displayedTrackIds, mutedTrackIds, fretboardTrackId }
+Preferences { theme, previewVolume, defaultZoom, lastOpenedSongId }
+```
+Do not store mutable/transposed notation as the original Song file. `SongSession` is UI state. Original file byte Blob can be stored in IndexedDB. Prefer future-proof schema versions, migrations, and stable IDs.
 
-## Critical music invariants
-1. **Tuning pitch**: internal array ordered from lowest sounding string to highest; convert deliberately to visible conventional guitar string numbering. Note+octave labels matter (E2 is different from E3).
-2. **Score presentation**: alphaTab parsed score is authoritative, including original notes and tab fingering.
-3. **Playback-only transpose**: investigate/use `changeTrackTranspositionPitch(tracks, semitones)` to offset synthesizer channel output rather than changing score's transposition or rewriting saved tabs. Validate percussion, MIDI channel sharing, bends, multi-track cases, and browser behavior.
-4. **Fretboard position**: original score's string and fret information is authoritative, not pitches after an output transform.
-5. **Playback synchronization**: rely on score/playback events such as `activeBeatsChanged`, `playedBeatChanged`, seeks and position events rather than estimated wall time. Validate repeats, changes in tempo and ties.
-6. **Layout**: alphaTab Page and Horizontal display modes; `barsPerRow` for page layout (2/3/4 where supported), `scale` for zoom. Re-render carefully when settings change.
-7. **Speed vs pitch**: playback speed adjustments must not detune the music, and pitch-only transpose must not alter duration, rendered notation or displayed fingerings.
+## Critical contracts
+1. String order always low pitch -> high pitch in stored data. UI labels can show conventional string numbers high E = string 1, but the mapping must be explicitly converted.
+2. For notation, alphaTab is authoritative. For the fretboard, string/fret notes from the original score are authoritative. For pitched output, synth channel shift is a separate non-destructive overlay.
+3. Live playback-only pitch shift: `api.changeTrackTranspositionPitch(tracks, semitones)` sets channel transpose in alphaTab. It does not rewrite the score. Validate on actual multi-track and shared MIDI-channel fixture; never call notation `transpositionPitches` for this UX feature.
+4. Loop and fretboard updates use playback timeline events (e.g., `activeBeatsChanged`, `playedBeatChanged`) with safe seeks/repeats, not wall-clock guesses.
+5. Page layout: `display.layoutMode = Page`; `display.barsPerRow = 2..4` or -1. Horizontal layout: `display.layoutMode = Horizontal`; use `display.scale` for zoom. Re-render only when needed.
+6. Playback speed change must not pitch-shift playback. Transposition change must not change playback speed or displayed note names/fingerings.
+7. Preserve track selection, zoom and playback state on settings change where technically possible; handle stopped/muted players cleanly.
+8. Imported files stay on user device in browser storage. No upload to GitHub or other users. Browser storage can be cleared/evicted; users must be able to download their own backup.
 
-## Browser storage and file handling
-- Use IndexedDB for imported binary files, saved tunings, category metadata and preferences. Keep localStorage for tiny expendable UI preferences only if needed.
-- File validation includes extension checks, format sniffing, reasonable size limits and controlled parse failures; malformed files should not crash the UI.
-- Exact duplicate checksum via `crypto.subtle.digest()` when suitable, with prompts for skip/duplicate.
-- Avoid injecting untrusted score metadata into `innerHTML`. Prefer safe DOM text APIs.
-- Backups should contain a manifest with schema and all source files, plus tunings, categories and preferences; restoring should validate types and IDs and handle merge/replace thoughtfully.
-- Quota errors and browser storage eviction must be explained; `navigator.storage.persist()` can be an optimization but not a guarantee.
-- Downloaded exports should be tested for byte fidelity.
+## Security, portability and reliability
+- Enforce file-size limits, structured parse errors, checksum duplicate detection. Use safe text nodes for metadata, not imported `innerHTML`.
+- Handle quota failure and private mode. Offer persistence request `navigator.storage.persist()` as appropriate, but never present it as a guarantee.
+- Backup ZIP with schema-validated manifest and original blobs; portable between browsers/devices through manual export/import.
+- Use relative asset paths under GitHub Pages base path. Verify audio worker/worklet + SoundFont HTTPS/CORS and browser autoplay unlocking; lazy-load player/audio assets when necessary.
+- Add lightweight automated tests for note mapping, tuning presets, backup, metadata and layout state; integration tests for real GP fixtures and player.
+- Include MPL-2.0 and bundled-font/SoundFont notices and licenses; do not publish proprietary third-party tab collections. User-provided content stays private unless user exports it.
 
-## Technical validation required before committing to the reader
-- Import/render/play fixture matrix covering GP3, GP4, GP5, GPX, and GP7/8 `.gp` where available.
-- Browser audio activation and the separate alphaTab worker/worklet/font/SoundFont asset paths on GitHub Pages.
-- Channel-based pitch-shift isolation and percussion handling.
-- Fretboard note event mappings for chords, alternate tuning, capo, repeats, changing meter/tempo and seeks.
-- Large multitrack file rendering/performance and offline/local persistence limits.
-
-## Test strategy
-- Pure unit tests: MIDI note mapping, string order, headstock peg-to-string relationships, preset validation, filters and backup format.
-- Integration: real GP fixtures in each expected format, replay/seek/loops, track visibility and MIDI-only transposition.
-- Browser smoke tests: Chrome/Firefox/Edge where practical, desktop and mobile widths, page/subpath asset serving, sample player audio, backup round-trip.
-- Include intentionally malformed and duplicate file inputs.
-
-## Non-goals
-No custom score engraving engine, no custom general GP binary writer in v1, no scraping generated alphaTab SVG as data, no social file distribution, no backend-dependent features. Editing/conversion comes only after an explicit round-trip fidelity feasibility study.
+## Unknowns to validate before implementation (Phase 0)
+- Supported file corpus and fidelity per GP version and effects/repeats/multi-track. GP4 and `.gp` Guitar Pro 8 files must be included.
+- `changeTrackTranspositionPitch` actual behavior on shared MIDI channels, percussion, bends and score/fretboard invariance.
+- Worker/audio asset loading under GitHub Pages subpath and browsers.
+- `activeBeatsChanged` relationship to repeated measures, sustain/tied notes and selected fretboard track.
+- Performance for songs with many tracks/bars; storage budget for many large files; any format conversion loss.
