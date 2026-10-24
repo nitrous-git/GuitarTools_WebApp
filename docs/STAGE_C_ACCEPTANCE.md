@@ -1,21 +1,32 @@
-# Stage C — Acceptance Checklist
-Status: Proposed. Check each gate only with direct evidence; explain remaining NOT TESTED items.
+# Stage C — Acceptance Criteria
 
-| ID | Acceptance condition | Test evidence |
+Stage C spans C0–C5. **Only the C0–C1 checkpoint below is the current Astra assignment.** Record PASS, FAIL or NOT TESTED with evidence; automated test coverage should not be dropped to claim success.
+
+## Current delivery: C0–C1
+
+| ID | Testable C0–C1 requirement | Verification |
 |---|---|---|
-| C01 | Stable three-page hash navigation and browser back/forward; default Tuning route | Desktop + 390px browser smoke; reload `#/player` |
-| C02 | Stage B Player route retains GP import/render/playback, pitch shift, loops, score layouts | Existing model/browser regression + Windows manual |
-| C03 | 6/7/8 SVG headstocks and corresponding peg/control count | Screenshot/DOM comparison for each count |
-| C04 | Canonical MIDI pitch representation and exact conventional string mapping | Unit tests, including non-monotonic tuning |
-| C05 | Correct read-only built-in presets; edit creates custom copy | Factory preset fixture + UI flow |
-| C06 | Editable per-string note and octave; load applies all string values | UI interaction test for 6/7/8 |
-| C07 | Save/rename/duplicate/favorite/delete, search, filter and sort | UI actions + IndexedDB readback |
-| C08 | Persistence after page reload and browser restart | Real IndexedDB test for 8-string custom tuning |
-| C09 | JSON tuning backup export/restore validation; invalid import doesn't erase records | Clean-profile restore + corruption test |
-| C10 | Correct audible note preview and Play All without autoplay errors | A4/E2/F#1 sampling or ear/known synth test |
-| C11 | Visually close to Stage A composition and theme; responsive at 1280 desktop and 390 mobile | Screenshots and interaction tests |
-| C12 | Full static GitHub Pages subpath compatibility, vendor patch/license preservation | Local simulated subpath + actual deployed Pages when available |
-| C13 | Data and UX quality: unsaved edits guard, keyboard labels/focus, storage failures | Automated checks + manual audit |
-| C14 | No production Song Library implementation or advanced GP editor in scope | Changed-file/scope audit |
+| C01 | Source based on latest `master`, using owner-created `stage-c-app-foundation`; untouched vendor alphaTab 1.8.4 + local getter fix/licenses | Head/changed-file audit; vendor hashes or diff; no Git writes |
+| C02 | Default `#/tuning`; `#/library` and `#/player` reachable; reload/direct hashes, Back/Forward, invalid route recovery | Browser interaction tests on desktop and 390px viewport |
+| C03 | Approved dark graphite/copper top navigation, active state, keyboard focus, no whole-page horizontal overflow | Screenshots and focus/viewport checks |
+| C04 | Honest Tuning and Library placeholders, without fabricated saved data or inert functional-looking controls | UI review and changed-file inspection |
+| C05 | Player import/render, audio, sample controls, layouts, zoom, mute/solo, speed, loop, seek, pitch-only transpose, diagnostic fretboard still function | Stage B existing model/browser tests + manual GPX/GP5 smoke |
+| C06 | One stable alphaTab/AudioWorklet lifecycle during repeated route transitions; loaded score/position and user settings retained; audio paused when leaving Player; no duplicate listeners or stuck notes | Loop 10–15 route changes, count instances/listeners where possible, manual audio check |
+| C07 | Historic `?test` and `window.stageB` browser test entry maintained or deliberately replaced with equivalent test coverage; no regression deletion | `node --test tests/model.test.mjs`; Playwright suite or NOT TESTED with reason |
+| C08 | Local HTTP and `/GuitarTools_WebApp/` subpath resources resolve; actual Pages verification separately identified | Static server subpath test, network/console, Pages HTTPS if available |
+| C09 | Source organized into small understandable modules, no new runtime framework or feature creep; shipped files are complete replacements | Module/scope/ZIP audit |
+| C10 | `docs/STAGE_C0_C1_RESULTS.md` records tested browsers, pass/fail/not-tested rows, changed files, lifecycle risks, and remaining Stage B fixture gaps | Results document content inspection |
 
-Final artifact: `docs/STAGE_C_RESULTS.md`, including PASS/FAIL/NOT TESTED for C01-C14, regressions, browser versions and next-stage recommendations.
+**Gate:** C0–C1 approved only when essential navigation and Stage B player functionality work. Any unavailable test remains NOT TESTED and requires a specific follow-up; don't declare the entire Stage C complete.
+
+## Subsequent deliveries: C2–C5 (not current scope)
+
+| ID | Requirement | Gate |
+|---|---|---|
+| C11 | 6/7/8 canonical MIDI/string domain + accurate validated factory presets | Unit tests with unconventional tunings |
+| C12 | Three original, responsive SVG headstocks with physically and logically correct peg mapping and all selectors | Interaction/screenshot tests, mobile widths |
+| C13 | Full tuning CRUD/favorites/categories/search/sort and safe versioned IndexedDB + JSON restore | Reload/backup/corruption/collision tests |
+| C14 | Correct audible plucked-note audition per string and Play All; no audio autoplay leakage | Manual browser and pitch tests |
+| C15 | Stage A high-fidelity Tuning page design and accessibility, with Stage B player not regressed | Desktop/mobile and existing Stage B regression suite |
+
+After C5, produce `docs/STAGE_C_RESULTS.md`. Advanced score/fretboard effects and native legacy format coverage remain tracked beyond this initial shell milestone.

@@ -1,41 +1,29 @@
-# Guitar Tools — Stage A · Visual Design v1
+# Guitar Tools — Stage A Visual Direction
 
-Status: **For visual review; not implementation-approved**
-Target: Desktop 1760×1000 reference compositions.
+**Status: APPROVED by product owner** (October 24, 2026). Desktop reference mockups are design targets, not a working application or exact layouts at every breakpoint.
 
-## Visual direction
-- Understated professional music-workstation interface, not a promotional or game-like dashboard.
-- Charcoal/graphite panels, restrained copper accent, cool grey secondary text, warmer active-note highlights.
-- Tight, legible metadata; minimal ornamental graphics; persistent navigation between exactly three primary pages.
-- Selected state visible via border + contrast, not color alone.
+## Approved visual system
 
-## Included screens
-1. `01-Tuning-Library.png`: 6-string view of a vector concept headstock (3+3), six independent note selectors with octave, adjacent play controls, tuning list and editor on one page.
-2. `02-Song-Library.png`: sidebar collections, searchable file list, prominent upload, selected song inspector and shortcuts to player/tuning.
-3. `03-Tab-Player.png`: page-flow notation with 2–4 bars per line selector, track selection/mute/solo, original song metadata, synchronized fretboard and player settings.
-4. `04-Tab-Player-Horizontal.png`: same reader in horizontally scrolling notation mode.
+- Professional guitarist's workstation, not a marketing hero page, learning game, or overly decorative dashboard.
+- Charcoal/graphite layered surfaces, restrained **copper** interaction accent, cool muted supporting labels, clear status contrast and keyboard focus.
+- Compact readable controls, minimal decorative text, strong information hierarchy and practical laptop/mobile adaptation.
+- Three top-level destinations: **Tuning Library**, **Song Library**, **Tab Player**.
 
-## Essential behavioral contracts for later implementation
-- Headstock config for 6/7/8 strings: 3+3, 3+4, 4+4 are proposed *visual* defaults, pending approval. Every string must map to exactly one visible pitch/octave control, physical peg, and audition action.
-- Notes in tuning data are MIDI note numbers with octave-specific labels; displayed notes low-to-high are unambiguous.
-- The Song Library is local-first. Import actual GP binaries and preserve originals; separate user metadata and collections; include export/import backup.
-- The Tab Player uses alphaTab for notation and playback, not images or custom notation markup.
-- The `−2 semitones` demo means **audio-only transposition**. It must not rewrite any score pitch, tab fret, or fretboard coordinate.
-- Playback fretboard: active notes in warm gold; remaining measure notes in neutral grey. The illustration is not a verified musical transcription.
-- Display mode Page and Horizontal must preserve zoom, track selection, and playback position.
+## Approved page compositions
 
-## Accuracy notes
-- These are **static design mockups**: clicks, selectors, imports and audio are not functional.
-- Song data is illustrative, derived in part from the user's screenshots and filled in with demonstration values. It is not extracted from a GP file.
-- The notation illustrations are crops of user-supplied reference screenshots, not rendered by alphaTab. The final app must replace these with live, correctly parsed scores.
-- The vector 6-string headstock is original UI concept art. Its silhouette and placement must be refined for the 7/8-string versions during the implementation-ready visual pass.
-- The layouts are desktop-first. Mobile/tablet views are a separate responsive design pass, not represented here.
+1. **Tuning Library:** left preset/saved list, large central original vector headstock with per-string note/playing controls, right tuning details/editor. A single page; designed around 6, 7 and 8 strings. Stage C2–C5 will implement it.
+2. **Song Library:** compact searchable table and collection navigation, selected-song details/action panel. Build in a later stage; C1 shows an honest placeholder, not simulated song data.
+3. **Tab Player:** notation-first primary workspace; tracks to the left, practice settings to the right, synchronized fretboard beneath score, fixed transport at the bottom. Page and continuous horizontal notation modes. **C1 retains Stage B player controls in a simple integrated view; production player redesign comes later.**
 
-## Review decisions to resolve
-1. Approve or revise the neutral charcoal + copper visual palette.
-2. Approve the Tuning Library's three-column composition and size of the headstock.
-3. Approve Song Library's compact table + persistent detail inspector.
-4. Approve the player layout: track list left, notation middle, playback/display controls right, fretboard below notation, transport fixed at bottom.
-5. Confirm the default notation view (page vs. horizontal) and whether track mixer should auto-collapse at smaller widths.
+Stage A delivered four standalone 1760×1000 visual references: `01-Tuning-Library.png`, `02-Song-Library.png`, `03-Tab-Player.png`, `04-Tab-Player-Horizontal.png`. They are distributed in a **separate design pack**, not bundled here. Some score images are cropped from user-supplied reference screenshots: do not publish or embed as app assets without appropriate rights. The app must render real notation through alphaTab, not screenshots.
 
-The `.html` + `.css` files are static desktop comps only. Do not use as working app logic or production-ready responsive layouts.
+## Technical and UX guardrails
+
+- Future 6-string 3+3, 7-string 3+4, 8-string 4+4 peg designs are the proposed visual configurations; peg-to-string mapping and practical dimensions must be verified when implementing the actual headstocks.
+- Use explicitly labeled semitone offset for **MIDI playback only**. Original TAB fingering, notation and fretboard positions remain unchanged.
+- Active fretboard notes use warm gold/yellow; other notes from the current source measure use neutral gray.
+- Responsive reflow and accessibility must take priority over pixel-perfect fixed-width screenshot matching.
+
+## C0–C1 design acceptance
+
+Use the approved color/typography/nav direction only; keep the shell cohesive and responsive. Do **not** spend the first implementation pass on complex SVG headstock illustration, real song table, a new player arrangement or elaborate marketing imagery. The core objective is navigation and lifecycle reliability.

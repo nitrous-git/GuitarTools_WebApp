@@ -1,83 +1,56 @@
-# Guitar Tools — Technical Architecture v1
+# Guitar Tools — Architecture & Invariants
 
-## Runtime
-Static GitHub Pages, plain HTML/CSS/JS ES modules. CDN allowed during prototyping but **production must pin an exact alphaTab release** and preferably host tested distributable JS, workers/worklets, fonts and licensed SoundFont under the site's own `assets/vendor/alphatab/` path. No Node/Vite *runtime*; optional local development tests are not a deployed dependency. Test site base-path behavior under `/repo-name/`.
+Updated 2026-10-24. Distinguish **implemented Stage B** from **planned Stage C**; target module names below are guidance, not existing source until coded.
 
-## Recommended libraries
-- Primary: [alphaTab](https://github.com/CoderLine/alphaTab) — GP3/4/5, GPX, GP7/8 import, notation SVG/canvas, MIDI SoundFont synthesis, playback, score API and GP7+ export. License MPL-2.0; accompanying fonts and SoundFont have separate licenses.
-- Secondary/reference: [guitarpro-parser](https://github.com/emilienbev/guitarpro-parser) — Apache-2.0 metadata extraction/reference, but its documented formats are GP3, GP5, GPX, GP7/8; **do not depend on it for GP4 without tests**. Avoid two conflicting models unless justified.
-- External reference: [TuxGuitar](https://github.com/helge17/tuxguitar) — Java desktop app (LGPL); learn UX/workflows but do not transplant desktop source into web architecture.
-- Browser primitives: Web Audio API for simple tuner preview, IndexedDB for stored file Blobs and collection metadata, Web Storage only for small transient UI settings if needed, File API for imports, Blob downloads for exports, crypto.subtle for hashes.
+## Implemented today (`master`)
 
-## Data flow
-`File picker/drop -> validation -> alphaTab import/metadata extraction -> IndexedDB(original Blob + song record) -> library index -> player load(original bytes) -> alphaTab score + synth events -> score renderer and separate fretboard view`
+- `index.html` + `src/main.js`: one-page Stage B player test bench; currently owns all DOM and control wiring.
+- `src/services/alphaTabAdapter.js`: alphaTab `AlphaTabApi` lifecycle, imports, playback, layout, looping, audio-only pitch and events.
+- `src/services/fretboardModel.js`: original source note string/fret/measure mapping and MIDI-channel protection.
+- `src/ui/fretboard.js`: **diagnostic table**, not the approved production vector fretboard.
+- `src/styles/app.css`: prototype styling. `tests/model.test.mjs` and `tests/browser.test.mjs`: meaningful regression assertions.
+- `assets/vendor/alphatab/`: **alphaTab 1.8.4 + one documented local getter fix** with ESM entry/core, worker/worklet, Bravura music font, Sonivox SF2 and separate licenses. Do not upgrade in C0–C1. Read `assets/vendor/README.md` before modification.
 
-`Tuning controls -> note MIDI numbers -> local audition synthesizer -> IndexedDB(tuning record)`
+The POC imports files into memory (20 MiB limit); there is **no song database, tuning database or production routing yet**. Automated tests used self-authored alphaTex + SDK-generated GP7 only. GP5/GPX have successful user manual reports; additional native formats are unverified.
 
-## Suggested module boundaries
+## Immediate target: Stage C0–C1
+
 ```
-index.html
-src/
-  app/App.js                 navigation, lifecycle
-  app/router.js              pages and route state
-  domain/notes.js            MIDI pitch <-> labels, guitar string logic
-  domain/tunings.js          presets, validation, headstock mappings
-  storage/db.js              IndexedDB version/migrations
-  storage/tuningRepository.js
-  storage/songRepository.js
-  storage/backupService.js
-  services/tuningAudio.js    audition (user-unlock audio)
-  services/gpImport.js       file sniffing, alphaTab adapter, metadata
-  services/alphaTabAdapter.js   only place to call most SDK methods
-  services/playbackSession.js  state, tempo ratio, solo/mute, transposition
-  services/fretboardModel.js selected track, notes in bar/beat, timeline
-  ui/pages/TuningPage.js
-  ui/pages/LibraryPage.js
-  ui/pages/PlayerPage.js
-  ui/components/Headstock.js
-  ui/components/Fretboard.js
-  ui/components/TrackPanel.js
-  ui/components/PlayerControls.js
-  styles/{tokens,layout,components,player,tuning,library}.css
-assets/vendor/alphatab/   pinned library/worker/worklet/fonts/sf2
+index.html                      app host (replace prototype structure)
+src/main.js                     slim bootstrap
+src/app/App.js                  page lifecycle, shared UI and player ownership
+src/app/router.js               dependency-free hash routes
+src/ui/pages/TuningPage.js      honest placeholder for C2–C5
+src/ui/pages/LibraryPage.js     honest placeholder for Stage D
+src/ui/pages/PlayerPage.js      existing Stage B controls integrated, one player
+src/styles/tokens.css           palette/typography/spacing
+src/styles/layout.css           nav, responsive shell and placeholders
+src/styles/player.css           isolate/adapt Stage B player styles
+src/services/alphaTabAdapter.js [PRESERVE behavior and vendor paths]
+src/services/fretboardModel.js  [PRESERVE source string mapping]
 ```
-Do not build a new music engraving engine. Do not scrape alphaTab's rendered SVG DOM for notes: consume score model and playback events. Separate track rendering from sound mixing and fretboard selection.
 
-## Data model / schema proposal
-```
-Tuning { id, name, stringCount, notesLowToHigh: number[],
-  categoryIds: string[], description, isPreset, createdAt, updatedAt }
-Song { id, displayName, originalFilename, fileType, blob, checksum,
-  title, artist, album, importedAt, updatedAt, categoryIds: string[],
-  favorite, notes, metadata: {tempo, keySignature, tracksSummary} }
-Category { id, name, kind: 'song'|'tuning', createdAt }
-SongSession { songId, playbackSpeed, pitchOffsetSemitones,
-  layoutMode, zoom, displayedTrackIds, mutedTrackIds, fretboardTrackId }
-Preferences { theme, previewVolume, defaultZoom, lastOpenedSongId }
-```
-Do not store mutable/transposed notation as the original Song file. `SongSession` is UI state. Original file byte Blob can be stored in IndexedDB. Prefer future-proof schema versions, migrations, and stable IDs.
+Do not create unused empty modules to satisfy the diagram. Separate views from SDK lifecycle. Do not create a second copy of the player to keep tests passing. Make `?test` route to the integrated player with the existing `window.stageB` test adapter hook, or provide fully equivalent test coverage explicitly.
 
-## Critical contracts
-1. String order always low pitch -> high pitch in stored data. UI labels can show conventional string numbers high E = string 1, but the mapping must be explicitly converted.
-2. For notation, alphaTab is authoritative. For the fretboard, string/fret notes from the original score are authoritative. For pitched output, synth channel shift is a separate non-destructive overlay.
-3. Live playback-only pitch shift: `api.changeTrackTranspositionPitch(tracks, semitones)` sets channel transpose in alphaTab. It does not rewrite the score. Validate on actual multi-track and shared MIDI-channel fixture; never call notation `transpositionPitches` for this UX feature.
-4. Loop and fretboard updates use playback timeline events (e.g., `activeBeatsChanged`, `playedBeatChanged`) with safe seeks/repeats, not wall-clock guesses.
-5. Page layout: `display.layoutMode = Page`; `display.barsPerRow = 2..4` or -1. Horizontal layout: `display.layoutMode = Horizontal`; use `display.scale` for zoom. Re-render only when needed.
-6. Playback speed change must not pitch-shift playback. Transposition change must not change playback speed or displayed note names/fingerings.
-7. Preserve track selection, zoom and playback state on settings change where technically possible; handle stopped/muted players cleanly.
-8. Imported files stay on user device in browser storage. No upload to GitHub or other users. Browser storage can be cleared/evicted; users must be able to download their own backup.
+**Recommended lifecycle:** create the alphaTab adapter only on first Player navigation, keep one instance and its live DOM subtree attached when visiting other pages, pause playback when the Player becomes hidden, retain imported score, track choices, position, zoom and pitch, and refresh its layout on return after the host becomes visible. Avoid duplicate listener registration on re-entry. Only dispose it on full application shutdown if the SDK explicitly supports it. Ensure a hidden player does not continue unwanted audio.
 
-## Security, portability and reliability
-- Enforce file-size limits, structured parse errors, checksum duplicate detection. Use safe text nodes for metadata, not imported `innerHTML`.
-- Handle quota failure and private mode. Offer persistence request `navigator.storage.persist()` as appropriate, but never present it as a guarantee.
-- Backup ZIP with schema-validated manifest and original blobs; portable between browsers/devices through manual export/import.
-- Use relative asset paths under GitHub Pages base path. Verify audio worker/worklet + SoundFont HTTPS/CORS and browser autoplay unlocking; lazy-load player/audio assets when necessary.
-- Add lightweight automated tests for note mapping, tuning presets, backup, metadata and layout state; integration tests for real GP fixtures and player.
-- Include MPL-2.0 and bundled-font/SoundFont notices and licenses; do not publish proprietary third-party tab collections. User-provided content stays private unless user exports it.
+Routing: `#/tuning` (default), `#/library`, `#/player`; `hashchange` and browser Back/Forward. Implement idempotent route transitions, focus behavior and unknown-route fallback. Routes need no server rewrites and must work under GitHub Pages `/GuitarTools_WebApp/`. The C0–C1 UI is dark graphite/charcoal with restrained copper accent, inspired by approved Stage A designs; no fake library entries or headstock controls until their stages.
 
-## Unknowns to validate before implementation (Phase 0)
-- Supported file corpus and fidelity per GP version and effects/repeats/multi-track. GP4 and `.gp` Guitar Pro 8 files must be included.
-- `changeTrackTranspositionPitch` actual behavior on shared MIDI channels, percussion, bends and score/fretboard invariance.
-- Worker/audio asset loading under GitHub Pages subpath and browsers.
-- `activeBeatsChanged` relationship to repeated measures, sustain/tied notes and selected fretboard track.
-- Performance for songs with many tracks/bars; storage budget for many large files; any format conversion loss.
+## Future stages (not part of C0–C1)
+
+- C2–C5: `domain/notes.js`, `domain/tunings.js`, original vector headstocks and interactive tuning UI, `storage/db.js`, `storage/tuningRepository.js`, tuning JSON import/export and Web Audio audition service.
+- D: stored original GP Blobs in IndexedDB, song/collection metadata, duplicate detection, portable backup.
+- E: production track/transport/fretboard components consuming the existing adapter/score model.
+
+## Non-negotiable musical contracts
+
+1. alphaTab's `staff.tuning` runs **high-to-low**. `Note.string` is **1-based low-to-high**. `position(note)` maps to conventional guitar string labels. Future tuning records use canonical MIDI pitches ordered by **string identity low-to-high**, without reordering by pitch (non-monotonic tunings are valid).
+2. Import the user's original binary; do not rewrite or silently transpose it. Player pitch transposition uses `changeTrackTranspositionPitch(...)` on supported melodic MIDI channels. Staff/TAB/fret numbers and original fretboard positions remain invariant. Shared/percussion channels may be coupled or excluded.
+3. Playback position, score rendering and fretboard source positions follow alphaTab's expanded tick timeline, including repeats; do not derive beats by wall-clock guesses or scrape rendered SVG.
+4. Change speed without changing pitch; change synthesizer pitch without changing speed or notation. Imported score tempo changes remain meaningful.
+5. Preserve licensed local font, worker, AudioWorklet and SoundFont asset resolution under a GitHub Pages subpath. Autoplay requires a direct user gesture.
+6. Browser storage in later stages is not a permanent guaranteed backup: include explicit exports/imports and quota/error handling before claiming durable user library storage.
+
+## Engineering quality
+
+Scope asset/style selectors to page roots, use `textContent` for untrusted GP metadata, provide focusable controls and visible focus, keep responsive page widths contained, and retain portable test fixtures and automated Stage B regressions. Actual Pages deployment and platform audio remain to be verified after user push.

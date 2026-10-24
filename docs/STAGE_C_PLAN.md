@@ -1,90 +1,77 @@
-# Guitar Tools — Stage C: Application Foundation + Tuning Library
-Status: Proposed for approval, 2026-10-24
-Start: new branch `stage-c-app-foundation` from `stage-b-alphatab-poc` HEAD (`e49436ea1b26c8a8fb6d6d2b693519c654c59e68` at audit time; confirm latest head before branching).
+# Stage C — Production Shell and Tuning Library
 
-## Goal
-Deliver the first usable, polished Guitar Tools module — **one-screen Tuning Library** — inside a resilient, minimal three-page application shell. Keep Stage B's functional tab reader accessible and non-regressed; leave Song Library as a clearly labeled next-stage empty-state shell. Match the approved Stage A charcoal/copper desktop visual direction without trying to build the entire song library/player UI now.
+**Status:** Planned, starting with **C0–C1 only**.  
+**Repository:** https://github.com/nitrous-git/GuitarTools_WebApp  
+**Current baseline:** latest `master` (includes Stage B); **new feature branch:** `stage-c-app-foundation`, created by the user from master.
 
-## Work split (one small Astra deliverable at a time)
+## Goal and delivery boundaries
 
-### C0 — Foundation safeguard / baseline (small)
-- Branch from Stage B head. Preserve vendored alphaTab and patch, licenses, alphaTex and GP7 test fixtures.
-- Archive `docs/STAGE_B_RESULTS.md` as evidence; annotate user manual GPX/GP5 confirmations without altering automated results. Correct branch references to `master`.
-- Establish smoke test baseline and map Stage B DOM/test selector dependencies before replacing markup. No functionality regressions.
-**Gate:** Stage B sample renders and audio+pitch smoke tests still work in new branch before UI redesign.
+Stage C will eventually deliver the first finished user-facing module: the personal 6/7/8-string **Tuning Library**, alongside the preserved working Guitar Pro reader and a placeholder for a future Song Library. Visual design from Stage A is approved.
 
-### C1 — Production application shell (UI infrastructure)
-- Desktop top navigation: **Tuning Library / Song Library / Tab Player**. Use simple `#/tuning`, `#/library`, `#/player` hash routes for GitHub Pages static hosting; browser back/forward and direct hash loads work. Default to Tuning Library.
-- Modular `App.js`, `router.js`, `TuningPage.js`, `LibraryPage.js`, `PlayerPage.js`. Theme tokens & components in small CSS files; no new framework or Vite.
-- Player route initially wraps the existing Stage B player controls, with all behavior available. Keep one alphaTab adapter lifecycle managed lazily; do not create synthesizer instances on every navigation. Re-measure and call layout/resize as needed when entering after hidden state. Cleanup listeners correctly.
-- Song Library route is an explicit 'next stage' empty state, not a fake imported catalog.
-- Keyboard-visible focus, readable desktop and responsive navigation; initial mobile fallback (390px) without entire-page horizontal overflow.
-**Gate:** switch 3 routes repeatedly without console errors, broken audio or import and without losing the currently loaded player score unnecessarily.
+Execute Stage C as **three separate ZIP deliveries**, each followed by testing and an audit:
 
-### C2 — Pure music/tuning domain (logic first)
-- `notes.js` defines MIDI pitch numeric conversion, sharps/flats display rules, octave labels, note validation and low-to-high ordering. Store 6/7/8 `notesLowToHigh[]`. Never sort pitches: non-monotonic tunings are valid.
-- Immutable factory presets (not user records): 6 Standard E, Drop D, Drop C, DADGAD, Open G; 7 Standard B; 8 Standard F#. Add additional presets only when musically validated.
-- `tunings.js` creates validated new records, duplicate/edit/preset clone; custom data `{id,name,stringCount,notesLowToHigh,categoryIds,description,favorite,createdAt,updatedAt}` with schemaVersion 1 as backup payload. Built-in presets are not editable/deletable in place; editing a preset requires Save As a new user record.
-- String mapping functions: stored array 0 = lowest sounding string; conventional guitar string 1 = highest; each visible peg has a unique physical anchor. Any alternate drop/open tuning that is not monotonic must still preserve assigned strings.
-**Gate:** unit tests for 6/7/8 string ordering, MIDI note→label (with octave), preset correctness, physical peg mapping, invalid data rejection, and no in-place preset mutation.
+| Delivery | Work | Exit state |
+|---|---|---|
+| 1 | **C0–C1** foundation + app shell | Three navigable pages; Stage B Player still works; other pages honestly labeled placeholders |
+| 2 | **C2–C3** music domain + headstock/editor | Accurate original SVG 6/7/8 peg controls, presets and tuning UI; persistence/audio not yet complete |
+| 3 | **C4–C5** storage, backup, audition, QA | Usable persistent custom tuning library; correct audio preview and backup |
 
-### C3 — High-fidelity Tuning Library UI
-- Follow Stage A approved `01-Tuning-Library` screenshot: compact left tuning/preset library, prominent center SVG headstock, right editing and detail inspector. Charcoal surfaces and restrained copper states.
-- Author **original SVGs**, responsive and crisp, for 6-string 3+3, 7-string 3+4, 8-string 4+4. Avoid branded real-guitar logos and copyrighted headstock silhouettes. All pegs and guitar strings must be visually correct — no six-control mockups in 7/8 modes.
-- Each string has a nearby editable note+octave dropdown, audition action, clear string label. Controls/peg count and mapping derive from same configuration object. Visual string paths connect to actual tuning pins.
-- Functional preset chooser, mode 6/7/8, custom tuning form, search and category/filter/sort, create/edit/clone/delete, unsaved changes indicator. Do not add microphone tuner, auto-detection, learning gamification or a separate tuning editor page.
-- Responsive fallback: compact laptop layout and mobile stacking or scroll where appropriate; headstock/peg controls must not overlap. No forced desktop 1760px layout.
-**Gate:** all 6/7/8 pegs and pitch selectors work; no invisible/unreachable controls, good readability at 1280px desktop and 390px mobile; keyboard controls are labeled and reachable.
+## C0 — Baseline safeguard
 
-### C4 — Local-first persistence and data protection
-- IndexedDB repository with versioned schema; factory presets remain in code and user tunings/categories are stored as records. Store preferences separately if needed. Creation/updates must be transactional; surface storage errors honestly.
-- Load, save, rename, duplicate, favorite, delete confirmation, date labels, search/filter/sort, and prompt on discarding unsaved edits when changing preset/string count/navigation.
-- Manual JSON export/import of **user tuning records, categories and relevant settings** with manifest version and validation. Clear merge/skip strategy for colliding IDs; don't let malformed import erase existing data. Save import/export dialogs simple and accessible. A full ZIP backup including song binaries belongs to the Song Library stage.
-- Use local storage only for nonessential small UI settings if any; don't store records solely in localStorage. Private browsing/quota failures get visible messages.
-**Gate:** save a custom 8-string tuning, reload application and see exactly the same string configuration; restore backup in another browser profile; rejection of invalid backup preserves existing data.
+- Start from owner-created `stage-c-app-foundation` based on latest **`master`**. Inspect latest files before editing. Do not create or move branches as part of the coding delivery.
+- Preserve patched, pinned alphaTab 1.8.4, its worker, AudioWorklet, Bravura/Sonivox, licenses, original fixture files, original-score pitch behavior and tracking.
+- Read `docs/STAGE_B_AUDIT.md` and `docs/STAGE_B_RESULTS.md`; establish current baseline without claiming extra GP format conformance.
+- Inventory Stage B test assumptions (`?test`, global `window.stageB`, IDs and expected events). Define a preservation strategy and run model/browser tests if possible.
 
-### C5 — Per-string note audition and final Stage C QA
-- Separate lightweight `tuningAudio.js` using Web Audio API; resume context only in click/user gesture; produce a short plucked-style preview and master volume. Keep correct pitch (MIDI note with A4=440 Hz), simultaneous activation/race handling and no stuck notes. If choosing SoundFont reuse, demonstrate it never mutates player settings or starts a second expensive player instance.
-- 'Play all strings' low→high with short gaps; stop/cleanup on route exits. Test laptop/mobile audio permissions; no microphone.
-- Regression: Stage B original and generated GP fixture, pitch -2/0/+2, page/horizontal, import, seek, loop, mute/solo, long-load errors. Ensure lazy player access doesn't break worker paths under GitHub Pages subpath. Show no errors on navigating between tuner and player.
-**Gate:** first fully functional Tuning Library matches visual direction, auditions accurately, persists and restores data, existing player works; all tests and limitations documented in `docs/STAGE_C_RESULTS.md`.
+**C0 exit:** no unrelated SDK/runtime changes; preserved ability to load the original exercise, render score, initialize audio, play and apply audio-only pitch. If anything cannot be tested, mark NOT TESTED.
 
-## Proposed layout and naming
+## C1 — Production application shell (the first implementation assignment)
+
+- A single static `index.html` shell using `src/main.js` bootstrap, small `src/app/App.js` and `src/app/router.js` (or equivalent clear modules). Avoid framework dependencies, complex state libraries and shadow versions of the reader.
+- Three functional hash destinations: `#/tuning` **default**, `#/library`, `#/player`. Support direct hash navigation, reload, browser Back/Forward and unknown routes sensibly.
+- A readable top navigation and restrained charcoal/copper palette consistent with Stage A. Accessible focus state, active destination, semantic elements and a 390px mobile fallback. Keep routes isolated from one another by page root/scoped styles.
+- **Tuning route:** professionally presented Stage C2–C5 placeholder. No fake working headstock or fake saved records yet.
+- **Song Library route:** honest Stage D placeholder. No mock uploads, permanent metadata or collection persistence yet.
+- **Tab Player route:** retain the existing working Stage B reader, controls, diagnostics, file picker, error handling, sample and `?test` mode. Extract the prototype controller from the monolithic `src/main.js` into `src/ui/pages/PlayerPage.js` (or a comparably clear separation) without rewriting the SDK's validated algorithms.
+- Single lazily-created `AlphaTabAdapter`. Keep its score and settings when switching away and back; no duplicate worker/synth or repeated listeners. Pause audio when leaving Player, then allow user-controlled resume on return. Re-render/resize after view becomes visible as needed; don't render into an unavailable root.
+- Protect old Playwright selector/adapter contracts (`#score`, `#audio`, `#fretboard`, `window.stageB` on `?test`) or update tests explicitly to cover the same behavior. Retain node model tests.
+
+**C1 exit:** repeat all three navigation routes and browser history without errors; Player can import GPX/GP5 manually, play/pause/seek, loop, change layout/zoom, use pitch-only transposition, and retain score across navigation; Stage B browser/model tests remain meaningful. Document test results in `docs/STAGE_C0_C1_RESULTS.md`.
+
+## C2 — Tuning music domain (later delivery)
+
+Pure modules for note MIDI numbers with octaves and string identities, immutable factory presets (6 Standard/Drop D/Drop C/DADGAD/Open G, 7 Standard B, 8 Standard F#), validation and no in-place preset edits. Store custom notes ordered **low-string to high-string**, never sort by pitch. Tests for 6/7/8, alternately tuned non-monotonic strings and accurate string-number convention.
+
+## C3 — Original SVG Tuning Library UI (later delivery)
+
+Implement the Stage A approved three-column Tuning page: library presets at left, original large vector headstock center, details editor right. Physical pegs and live note/octave selectors for 6 (3+3), 7 (3+4), and 8 (4+4), with correct one-control-per-string mapping, responsive controls, category/search and unsaved state. No microphone pitch tuner.
+
+## C4 — Tuning persistence (later delivery)
+
+Versioned IndexedDB custom tunings and categories. Built-in presets remain in code. Create/edit/rename/duplicate/favorite/delete with confirmation; unsaved edit safeguards, search/filter/sort, created/updated timestamps, safe JSON export/import with schema and collision validation. Do not falsely imply browser storage is permanent.
+
+## C5 — Audition and Stage C regression (later delivery)
+
+Per-string plucked-style Web Audio note preview (concert A4 = 440 Hz), Play All low-to-high, volume and cleanup. Correct low extended-range notes and user gesture rules, without mutating alphaTab audio state. Then full persistence/reload/backup/manual browser/Pages and Stage B regression checks. Stage C final report: `docs/STAGE_C_RESULTS.md`.
+
+## Production module shape (create only what C0–C1 needs)
+
 ```
 index.html
-src/
-  app/App.js
-  app/router.js
-  domain/notes.js
-  domain/tunings.js
-  storage/db.js
-  storage/tuningRepository.js
-  storage/tuningBackup.js
-  services/tuningAudio.js
-  services/alphaTabAdapter.js      [retain tested implementation]
-  services/fretboardModel.js       [retain tested mapping]
-  ui/pages/TuningPage.js
-  ui/pages/LibraryPage.js
-  ui/pages/PlayerPage.js
-  ui/components/Headstock.js
-  ui/components/TuningList.js
-  ui/components/TuningEditor.js
-  ui/fretboard.js                 [legacy diagnostic or later replacement]
-  styles/tokens.css
-  styles/layout.css
-  styles/tuning.css
-  styles/player.css               [until redesigned]
-assets/vendor/alphatab/            [do not upgrade]
-tests/tunings.test.mjs
-... existing Stage B fixtures / browser tests ...
+src/main.js                      small bootstrap
+src/app/App.js                   routes, page ownership/lifecycle
+src/app/router.js                small hash router
+src/ui/pages/TuningPage.js       C1 placeholder
+src/ui/pages/LibraryPage.js      C1 placeholder
+src/ui/pages/PlayerPage.js       integrated Stage B UI/controller
+src/styles/tokens.css            shared theme
+src/styles/layout.css            shell/nav/responsive
+src/styles/player.css            Stage B player styles isolated
+src/services/alphaTabAdapter.js  preserve tested SDK behavior
+src/services/fretboardModel.js   preserve musical mapping
+assets/vendor/alphatab/          preserve as-is
 ```
-Names are a guide; preserve modularity rather than create unused empty files. No heavy router/state-management library.
 
-## Strict boundary
-**Stage C includes the app shell + completed Tuning Library only.** It does *not* include Song Library imports, collection management, embedded GP file persistence, complete player visual redesign, editing/conversion, account system, cloud sync, microphone-based detection or final advanced fretboard effects. The Stage B player remains usable on the Player route pending a later production visual integration.
+No need to create future tuning/storage/audio modules or unused folders in this delivery. Source user state is not persisted in the current Player; do not claim it is. GitHub Pages runtime remains static, build-free, and at a repository subpath.
 
-## Delivery approach
-- Astra Medium for architecture and integration; use small specialist tasks only for isolated CSS/SVG or tests if supported and economical.
-- Ship one testable substage at a time. ZIP of complete modified/new files with repository-relative paths, no Git writes, no migration scripts, user pushes and merges.
-- For new Stage C branch, branch from latest `stage-b-alphatab-poc`, **not** default `master` unless user has merged Stage B first.
-- Add focused tests rather than expanding documentation. Report objective evidence, not screenshots of untested interactions.
+**Out of scope C0–C1:** actual tuner/headstock UI, IndexedDB, song library imports and binary storage, redesigned player workstation, new notation/fretboard engine, audio recording, score editing/conversion, accounts, backend, and SDK upgrades.
