@@ -1,43 +1,64 @@
-# Guitar Tools — Static Web App
+# Guitar Tools — Stage B technical POC
 
-A local-first guitarist's toolkit: custom tuning library, personal Guitar Pro song library, and notation/player with a synchronized fretboard.
+Static HTML/CSS/JavaScript ES modules, with self-hosted alphaTab **1.8.4 + one
+local worker-getter fix**. No build, npm runtime, backend or CDN is required.
+This is the technical test bench, not the approved Stage A production UI.
 
-## Current status
+## Run
 
-- Stage A: visual design approved (visual references supplied separately).
-- Stage B / P0: alphaTab feasibility proof-of-concept **not yet implemented**.
-- The files in `src/` currently show only a dependency-free placeholder shell.
+1. Extract the delivery ZIP over the root of your `stage-b-alphatab-poc` checkout.
+2. Serve that root using WebStorm's static server or another HTTP server
+   (optional: `python -m http.server 8000`). Open its `index.html` over HTTP.
+3. The bundled original exercise loads automatically. Click **Enable audio**,
+   wait for SoundFont loaded, then **Play**. Space also toggles playback when
+   focus is outside a form control.
+4. Try page/horizontal, zoom, visible/mute/solo, speed, pitch and fretboard track.
+   Use the seek slider or click the score. Loops select playback **occurrences**,
+   so repeated source bars have separate entries. Dragging over the score also
+   selects a range. For repeatable loops, use the occurrence selectors and checkbox.
+5. Choose a local Guitar Pro file. Parsing happens on-device; no files are
+   uploaded or persisted. Reloading discards the session. The 20 MiB limit is
+   a POC safeguard, not a promise about long-song performance.
 
-## Repository conventions
+Use **Load E4 pitch reference** for pitch checks. At -2 it sounds D4; at +2 F#4;
+TAB must remain open string 1. The diagnostic shows original beat fingerings,
+not transposed pitches or exact audio sustain. See the measured results and
+remaining gate checks in [docs/STAGE_B_RESULTS.md](docs/STAGE_B_RESULTS.md).
 
-- Static HTML/CSS/vanilla JavaScript ES modules. No mandatory Node runtime, Vite, React, or backend.
-- GitHub Pages serves `index.html` from the `main` branch's repository root.
-- Paths must work at `/GuitarTools_WebApp/` or another GitHub Pages project subpath; use relative paths or a derived site base URL.
-- Do not modify original user-imported Guitar Pro bytes; do not upload them to any server.
-- Document and pin all third-party versions and attribution requirements.
+## GitHub Pages
 
-## Start here
+All URLs are module-relative and tested locally at `/GuitarTools_WebApp/`.
+After you push/deploy the desired branch/root, check the real HTTPS site:
 
-1. Read `AGENTS.md`, then `docs/PROJECT_BRIEF.md` and `docs/ARCHITECTURE.md`.
-2. Read `docs/STAGE_B_ACCEPTANCE.md` for the current technical gate.
-3. Work Astra's assignment: `docs/ASTRA_STAGE_B_PROMPT.md`.
-4. Use local HTTP hosting for ES modules (e.g. WebStorm's static web server or `python -m http.server 8000` as an optional local dev convenience); opening `file://` is not a valid deployment test.
+- Score font, both layouts, cursor, local file chooser, and no console errors.
+- Enable audio and Play: worker, worklet, Bravura and Sonivox requests return 200.
+- Run your lawful GP3/4/5/GPX/GP7/GP8 fixtures, including drums and shared channels.
+- Try -2/+2 pitch, 50% speed, loops, seeks, mute/solo and mobile scrolling.
+- Verify your target Windows browser's audio/autoplay permissions.
 
-## Deploy via GitHub Pages
+Actual GitHub Pages deployment is **not tested**. No remote changes were made.
+`file://` is not supported; audio worklets require HTTPS or localhost.
 
-1. Create GitHub repo `GuitarTools_WebApp` and upload **the contents of this folder to the repo root** (not the enclosing folder itself).
-2. In repository **Settings → Pages**, choose **Deploy from a branch**, `main`, and `/(root)`.
-3. Visit `https://nitrous-git.github.io/GuitarTools_WebApp/` (assuming the repo is owned by `nitrous-git`).
-4. For Stage B, verify audio, Web Workers, worklets, font assets and local-file imports under this actual HTTPS subpath after the user pushes Astra's output.
+## Optional developer tests
 
-## Scope boundaries
+`node --test tests/model.test.mjs` — four model/parser tests, no dependencies.
 
-Stage B is for SDK feasibility only, **not** the final three-page application. No IndexedDB library, tuning editor, elaborate custom UI, full GP editor, account system, remote tab search, or GP conversion in Stage B.
+`node tests/browser.test.mjs` — requires Playwright installed for development
+and its Chromium browser (`npx playwright install chromium`). Optional environment
+variables: `PLAYWRIGHT_MODULE` (module path), `CHROMIUM_PATH` (browser executable),
+`SCREENSHOT_DIR` (existing temporary screenshot directory). The test starts its
+own static server under a repository subpath. Test dependencies are not deployed.
 
-## Visual references
+Use `?test` only for development; it exposes the adapter as `window.stageB` for
+assertions. The audio test taps the real AudioWorklet PCM and checks frequency;
+its access to `_worklet` is test-only and pinned-version-specific.
 
-`design/DESIGN_REVIEW.md` holds the approved visual direction. The Stage A mockups (`GuitarTools_StageA_VisualDesign_v1.zip`) are distributed separately to avoid committing third-party reference score images to a public repo. They are not production code or validated notation data.
+## Structure / licenses
 
-## Licensing
+`src/services/alphaTabAdapter.js` owns SDK lifecycle, import, playback and pitch;
+`fretboardModel.js` converts original string positions and protects percussion;
+`src/ui/fretboard.js` renders diagnostics; `src/main.js` connects controls.
 
-The new application's code license is undecided. alphaTab and other third-party distributables retain their independent license obligations. Document redistributed vendor files and include their licenses when those files are added. Do not redistribute copyrighted tab/song fixture collections.
+Vendor source, patch explanation and licenses are in `assets/vendor/README.md`.
+Fixture provenance is in `tests/fixtures/public/README.md`. New app code license
+remains undecided; bundled third-party licenses remain independent.
