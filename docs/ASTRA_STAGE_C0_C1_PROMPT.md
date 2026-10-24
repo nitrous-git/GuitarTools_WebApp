@@ -87,3 +87,22 @@ No C2–C5 actual tuning editor, headstock SVGs, tuning presets CRUD, IndexedDB,
 - If a critical regression can't be resolved, report a specific blocker and deliver the maximum safely working source rather than claiming completion.
 
 **Success means:** the approved three-page foundation is usable and responsive, with the Stage B player intact and its score/audio preserved across navigation. The complete Tuning Library is **not** expected until C2–C5.
+
+## Stage A Visual References
+
+The four attached mockups represent the **approved visual direction** for Guitar Tools.
+
+Use them as the design reference for Stage C0–C1, particularly:
+
+- Dark charcoal surfaces and restrained copper accents.
+- Consistent typography, spacing, borders, and controls.
+- Compact professional workstation aesthetic.
+- Three-page top navigation and responsive application shell.
+
+**Scope restriction:** Do not attempt to reproduce every mockup in this stage.
+
+The Tuning Library and Song Library should remain styled placeholders. Their complete interfaces will be implemented in later stages.
+
+For the Tab Player, preserve the existing Stage B functionality and introduce only the structural integration and styling necessary for the new application shell. Do not rebuild the notation reader, fretboard, or playback engine.
+
+The goal is to establish a production-quality visual foundation that subsequent stages can extend without significant UI rework.
