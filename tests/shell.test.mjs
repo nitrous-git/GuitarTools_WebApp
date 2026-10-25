@@ -97,8 +97,8 @@ try {
   for (const count of [6, 7, 8]) {
     await page.selectOption('#tuning-count', String(count));
     assert.equal(await page.locator('.headstock-peg').count(), count);
-    assert.equal(await page.locator('.peg-control-left').count(), Math.floor(count / 2));
-    assert.equal(await page.locator('.peg-control-right').count(), Math.ceil(count / 2));
+    assert.equal(await page.locator('.peg-control-left').count(), Math.ceil(count / 2));
+    assert.equal(await page.locator('.peg-control-right').count(), Math.floor(count / 2));
     for (let number = count; number >= 1; number--) {
       const peg = page.locator(`.headstock-peg[data-string="string-${number}"]`);
       await peg.focus(); await page.keyboard.press(number % 2 ? 'Enter' : 'Space');

@@ -57,8 +57,8 @@ export async function tuningCorrections({ browser, base }) {
     await page.locator('#tuning-collection').selectOption(category.id); await save();
     assert.deepEqual((await snapshot()).tunings[0].categoryIds, [category.id]); assert.equal((await snapshot()).tunings[0].favorite, false);
     // Six-string row order from both SVG geometry and associated HTML controls.
-    const order = await page.locator('.headstock-peg').evaluateAll(nodes => nodes.map(n => ({ id:n.dataset.string, x:Number(n.querySelector('circle').getAttribute('cx')), y:Number(n.querySelector('circle').getAttribute('cy')) })).sort((a,b)=>a.x-b.x || a.y-b.y).map(n=>n.id));
-    assert.deepEqual(order, ['string-4','string-5','string-6','string-3','string-2','string-1']);
+    const order = await page.locator('.headstock-peg').evaluateAll(nodes => nodes.map(n => ({ id:n.dataset.string, x:Number(n.querySelector('circle').getAttribute('cx')), y:Number(n.querySelector('circle').getAttribute('cy')) })).sort((a,b)=>Number(a.x > 280)-Number(b.x > 280) || a.y-b.y).map(n=>n.id));
+    assert.deepEqual(order, ['string-4','string-5','string-6','string-1','string-2','string-3']);
     await page.locator('[data-preset=standard-e]').click();
     assert(await page.locator('#tuning-delete').isVisible());
     await page.locator('#tuning-delete').click(); await page.keyboard.press('Escape'); await ready();

@@ -7,11 +7,11 @@ export function assertStringCount(count) {
 // Physical order is fixed, even when pitches cross. String 1 is the treble-side string.
 export function stringMap(count) {
   assertStringCount(count);
-  const leftCount = Math.floor(count / 2);
+  const leftCount = Math.ceil(count / 2);
   return Array.from({ length: count }, (_, index) => ({
     id: `string-${count - index}`, index, number: count - index,
     side: index < leftCount ? 'left' : 'right',
-    row: index < leftCount ? leftCount - 1 - index : index - leftCount
+    row: index < leftCount ? leftCount - 1 - index : count - 1 - index
   }));
 }
 export function validateTuning(tuning) {
