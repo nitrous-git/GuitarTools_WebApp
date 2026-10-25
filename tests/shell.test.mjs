@@ -5,6 +5,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { tuningIntegration } from './tuningIntegration.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
 const root = fileURLToPath(new URL('../', import.meta.url));
@@ -21,6 +22,7 @@ let browser;
 try {
   browser = await chromium.launch({ executablePath: process.env.CHROMIUM_PATH || undefined, headless: true, args: ['--no-sandbox', '--disable-dev-shm-usage'] });
   const page = await browser.newPage({ viewport: { width: 1280, height: 900 } });
+  page.on('dialog', dialog => dialog.accept()); // Browser-controlled beforeunload warning.
   const errors = [], failed = [], requests = [], workers = [];
   page.on('pageerror', e => errors.push(e.message));
   page.on('response', r => { if (r.status() >= 400) failed.push(r.url()); });
@@ -72,7 +74,7 @@ try {
   assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '36');
   await page.getByLabel('String 6 octave', { exact: true }).selectOption('5');
   assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '72');
-  assert.equal(await page.locator('#tuning-badge').textContent(), 'EDITED DRAFT');
+  assert.equal(await page.locator('#tuning-badge').textContent(), 'UNSAVED DRAFT');
   await page.locator('#tuning-name').fill('Reentrant experiment');
   await page.locator('#tuning-name').press('Tab');
   await page.locator('#tuning-description').fill('<img src=x onerror=alert(1)>');
@@ -112,19 +114,23 @@ try {
   await page.getByLabel('String 1 full note', { exact: true }).selectOption('0');
   assert.equal(await page.getByLabel('String 1 octave', { exact: true }).inputValue(), '-1');
   await page.locator('#tuning-reset').click();
+  await page.locator('dialog [data-choice=discard]').click();
+  await page.waitForFunction(() => !document.querySelector('#tuning-save-as').disabled);
   assert.equal(await page.getByLabel('String 8 full note', { exact: true }).inputValue(), '30');
   assert(await page.locator('#tuning-reset').isDisabled());
   await page.reload();
   assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '40');
   assert(!requests.some(url => url.includes('alphaTab')));
   console.log('PASS preset search, independent drafts, reset/reload, navigation retention, 6/7/8 peg editing, keyboard Enter/Space, MIDI boundaries, responsive 280–1760px');
+  await tuningIntegration({ page, base, route, fits });
   await page.goto(`${base}?test#/player`);
   await page.waitForFunction(() => window.stageB?.api.tickCache?.masterBars.length === 6 && document.querySelector('#score svg'));
   await page.reload();
   await page.waitForFunction(() => window.stageB?.playerReady && document.querySelector('#score svg'));
   await page.setInputFiles('#file', path.join(root, 'tests/fixtures/public/stage-b-generated.gp'));
-  await page.waitForFunction(() => stageB.originalBytes?.length && stageB.api.isReadyForPlayback);
-  await page.click('#audio'); await page.waitForFunction(() => stageB.audioReady);
+  await page.waitForFunction(() => stageB.originalBytes?.length);
+  await page.click('#audio');
+  await page.waitForFunction(() => stageB.audioReady && stageB.api.isReadyForPlayback);
   await page.selectOption('#layout', 'horizontal');
   await page.locator('#zoom').fill('120'); await page.locator('#zoom').dispatchEvent('change');
   await page.selectOption('#speed', '75'); await page.selectOption('#pitch', '2');
@@ -138,6 +144,8 @@ try {
   await page.click('#play'); await page.waitForFunction(() => stageB.api.tickPosition > 300);
   await route('tuning'); await page.waitForFunction(() => stageB.api.playerState === 0);
   const paused = await page.evaluate(() => stageB.api.tickPosition);
+  await page.getByRole('button', { name: 'Play string 6, E2', exact: true }).click();
+  await page.waitForTimeout(100); // Tuning synth runs independently while the retained Player stays paused.
   await page.locator('#tuning-title').focus(); await page.keyboard.press('Space');
   await page.waitForTimeout(200);
   assert.equal(await page.evaluate(() => stageB.api.tickPosition), paused);

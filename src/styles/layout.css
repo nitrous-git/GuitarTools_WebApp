@@ -45,3 +45,6 @@ p { overflow-wrap: anywhere; }
   .empty-state { padding: 32px 18px; min-height: 360px; }
   .app-footer { padding: 14px 12px; }
 }
+@media (max-width: 340px) {
+  .topbar nav a { min-width: 0; white-space: normal; }
+}

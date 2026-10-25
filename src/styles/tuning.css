@@ -80,3 +80,41 @@
   .tuning-details { display: block; }
   #tuning-note-editor { grid-template-columns: 1fr; }
 }
+/* Saved library and audition controls extend the existing C2–C3 workstation. */
+.tuning-page button { min-height: 36px; padding: 7px 10px; }
+.tuning-library-tools, .tuning-save-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 16px; }
+.tuning-page #tuning-save, .tuning-page #tuning-save-as { background: var(--accent); color: #191614; border-color: var(--accent-light); font-weight: 600; }
+.tuning-backup, .tuning-category-management { margin: 16px; color: var(--muted); font-size: 12px; }
+.tuning-page summary { cursor: pointer; padding: 8px 0; color: var(--text); }
+.tuning-backup button { margin: 4px 4px 4px 0; }
+#tuning-storage-status { margin: 16px; color: var(--muted); font-size: 11px; overflow-wrap: anywhere; }
+.tuning-record-id { font: 9px var(--mono); color: var(--muted); }
+.tuning-category-assignment { border: 1px solid var(--border); border-radius: 5px; margin: 16px; padding: 10px; min-width: 0; color: var(--muted); font-size: 12px; }
+#tuning-category-choices { display: grid; gap: 5px; max-height: 160px; overflow: auto; }
+#tuning-category-choices label, .tuning-favorite { display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; }
+#tuning-category-choices input, .tuning-favorite input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--accent); }
+.tuning-favorite { margin: 16px; font-size: 12px; }
+.tuning-favorite span { color: var(--muted); font-size: 10px; }
+.tuning-category-management label { display: grid; gap: 6px; margin: 10px 0; }
+.tuning-category-management button { margin: 4px 3px 0 0; }
+#tuning-metadata { color: var(--muted); font: 10px/1.8 var(--mono); margin: 16px; overflow-wrap: anywhere; }
+.tuning-stage-footer { flex-wrap: wrap; }
+.tuning-audio-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tuning-audio-controls label { font-size: 11px; color: var(--muted); display: grid; gap: 4px; max-width: 130px; }
+.tuning-audio-controls input { padding: 0; accent-color: var(--accent); }
+#tuning-audio-status { flex-basis: 100%; color: var(--muted); font-size: 11px; margin: 0; }
+.tuning-string-row { grid-template-columns: 18px minmax(0, 1fr) minmax(0, 1fr) 40px 34px; gap: 4px; }
+.tuning-page .tuning-string-play { padding: 4px; width: 34px; min-height: 36px; color: var(--accent-light); }
+.peg-control.is-playing select { border-color: #efce8b; box-shadow: 0 0 0 1px #efce8b; }
+.headstock-peg.is-playing .headstock-wire, .headstock-peg.is-playing .peg-ring { stroke: #efce8b; }
+.tuning-dialog { color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; }
+.tuning-dialog::backdrop { background: #05090dd9; }
+.tuning-dialog h2 { font-size: 19px; margin: 0 0 12px; }
+.tuning-dialog p { color: var(--muted); }
+.tuning-dialog label { display: grid; gap: 8px; }
+.tuning-dialog input, .tuning-dialog button { color: var(--text); background: var(--panel-raised); border: 1px solid var(--border); padding: 10px; border-radius: 5px; font: inherit; min-width: 0; }
+.tuning-dialog button { cursor: pointer; }
+.tuning-dialog button:hover { border-color: var(--accent); }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+@media (max-width: 1100px) { .tuning-details > .tuning-favorite, .tuning-details > .tuning-category-assignment, .tuning-details > .tuning-category-management, #tuning-metadata, .tuning-save-actions { grid-column: 1 / -1; } }
+@media (max-width: 650px) { .tuning-library-tools, .tuning-backup, #tuning-storage-status { grid-column: 1 / -1; } .tuning-string-row select { min-height: 40px; } .tuning-page .tuning-string-play { min-height: 40px; } }
