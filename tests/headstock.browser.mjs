@@ -24,7 +24,7 @@ try {
   const errors = []; page.on('pageerror', e => errors.push(e.message));
   await page.goto(`http://127.0.0.1:${server.address().port}/GuitarTools_WebApp/`);
   await page.waitForFunction(() => !document.querySelector('#tuning-save-as').disabled);
-  const expected = {6:[[4,5,6],[1,2,3]],7:[[4,5,6,7],[1,2,3]],8:[[5,6,7,8],[1,2,3,4]]};
+  const expected = {6:[[4,5,6],[3,2,1]],7:[[4,5,6,7],[3,2,1]],8:[[5,6,7,8],[4,3,2,1]]};
   for (const count of [6,7,8]) {
     await page.locator(`[data-count="${count}"]`).click();
     await page.locator('#tuning-new').click();
