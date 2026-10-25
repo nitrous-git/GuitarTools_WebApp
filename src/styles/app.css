@@ -1,21 +1,8 @@
-:root { color-scheme: dark; font: 15px/1.5 system-ui,sans-serif; background:#171c24; color:#edf0f5; }
-* { box-sizing:border-box; }
-body { margin:0; }
-header,footer { padding:18px max(20px,calc((100% - 1400px)/2)); background:#222b38; }
-header { display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
-header strong { font-size:22px; } header span,p.hint { color:#b7c5d6; }
-main { max-width:1440px; margin:auto; padding:20px; }
-h1 { font-size:26px; margin:0; } h2 { font-size:18px; }
-section { margin:18px 0; } .controls { display:flex; flex-wrap:wrap; align-items:end; gap:12px; }
-label { display:flex; flex-wrap:wrap; align-items:center; gap:6px; } .controls label { max-width:100%; }
-button,select,input { font:inherit; } button,select,input[type=file] { background:#293446; color:inherit; border:1px solid #71829b; border-radius:5px; padding:8px; max-width:100%; }
-button { cursor:pointer; } button:disabled { opacity:.5; cursor:wait; } input { accent-color:#efc863; }
-:focus-visible { outline:3px solid #efc863; outline-offset:3px; }
-#status { border-left:3px solid #86c5b1; padding:8px 12px; } #error { padding:12px; background:#612d30; color:#fff; }
-.seek { flex:1; min-width:200px; }.seek input { flex:1; min-width:100px; }
-table { border-collapse:collapse; width:100%; } th,td { padding:8px; border:1px solid #46556b; text-align:left; } td input { width:20px; height:20px; } caption { text-align:left; padding:8px 0; }
-.table-scroll { overflow:auto; } #score-scroll { position:relative; overflow:auto; background:#fff; color:#111; height:520px; border-radius:5px; } #score { min-width:640px; }
-.at-cursor-bar { background:rgba(72,134,220,.16); }.at-cursor-beat { background:#2685c6; width:3px; }.at-selection div { background:rgba(245,180,30,.25); }.at-highlight * { fill:#186ca7; stroke:#186ca7; }
-.fret-grid { min-width:720px; margin-top:12px; }.fret-grid td { text-align:center; min-width:34px; color:#6c7a8d; }.fret-grid .measure { background:#596578; color:#fff; }.fret-grid .active { background:#efc863; color:#15191f; font-weight:bold; }
-pre { white-space:pre-wrap; overflow-wrap:anywhere; max-height:260px; overflow:auto; background:#10151d; padding:12px; } a { color:#aed9ff; }
-@media(max-width:600px) { main { padding:12px; } .controls { align-items:stretch; } h1 { font-size:22px; } #score-scroll { height:420px; } th,td { padding:6px; } }
+/* Build-free shared theme, shell and scoped player styles. */
+@import url("./tokens.css");
+@import url("./layout.css");
+@import url("./player.css");
+
+@import url("./tuning.css");
+
+@import url("./library.css");

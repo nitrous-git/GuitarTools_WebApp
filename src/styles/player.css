@@ -1,0 +1,40 @@
+/* Stage B controls and diagnostic views, scoped to their persistent page. */
+.player-page > p:not(.eyebrow), .player-page .hint { color: var(--muted); }
+.player-page h2 { font-size: 17px; }
+.player-page section { margin: 18px 0; padding: 14px; background: var(--panel); border: 1px solid var(--border); border-radius: 8px; min-width: 0; }
+.player-page .controls { display: flex; flex-wrap: wrap; align-items: end; gap: 12px; }
+.player-page label { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; max-width: 100%; }
+.player-page button, .player-page select, .player-page input { font: inherit; }
+.player-page button, .player-page select, .player-page input[type=file] { background: var(--panel-raised); color: var(--text); border: 1px solid #53616c; border-radius: 5px; padding: 8px; max-width: 100%; min-height: 38px; }
+.player-page button { cursor: pointer; }
+.player-page button:hover:not(:disabled) { background: var(--hover); border-color: var(--accent); }
+.player-page button:disabled { opacity: .5; cursor: default; }
+.player-page input { accent-color: var(--accent); max-width: 100%; }
+.player-page #play { background: var(--accent); color: #191614; border-color: var(--accent-light); font-weight: 600; min-width: 70px; }
+.player-page #status { border-left: 3px solid #86c5b1; padding: 8px 12px; }
+.player-page #error { padding: 12px; background: #612d30; color: #fff; }
+.player-page .seek { flex: 1; min-width: 200px; }
+.player-page .seek input { flex: 1; min-width: 100px; }
+.player-page table { border-collapse: collapse; width: 100%; }
+.player-page th, .player-page td { padding: 8px; border: 1px solid var(--border); text-align: left; }
+.player-page td input { width: 20px; height: 20px; }
+.player-page caption { text-align: left; padding: 8px 0; }
+.player-page .table-scroll { overflow: auto; max-width: 100%; }
+.player-page #score-scroll { position: relative; overflow: auto; background: #fff; color: #111; height: 520px; border-radius: 5px; }
+.player-page #score { min-width: 640px; }
+.player-page .at-cursor-bar { background: rgba(72,134,220,.16); }
+.player-page .at-cursor-beat { background: #2685c6; width: 3px; }
+.player-page .at-selection div { background: rgba(245,180,30,.25); }
+.player-page .at-highlight * { fill: #186ca7; stroke: #186ca7; }
+.player-page .fret-grid { min-width: 720px; margin-top: 12px; }
+.player-page .fret-grid td { text-align: center; min-width: 34px; color: #a0aab2; }
+.player-page .fret-grid .measure { background: #596578; color: #fff; }
+.player-page .fret-grid .active { background: #efc863; color: #15191f; font-weight: bold; }
+.player-page pre { white-space: pre-wrap; overflow-wrap: anywhere; max-height: 260px; overflow: auto; background: var(--bg); padding: 12px; }
+.player-page summary { cursor: pointer; padding: 10px 0; }
+@media (max-width: 600px) {
+  .player-page .controls { align-items: stretch; }
+  .player-page section { padding: 10px; }
+  .player-page #score-scroll { height: 420px; }
+  .player-page th, .player-page td { padding: 6px; }
+}

@@ -23,7 +23,3 @@ Stage A delivered four standalone 1760×1000 visual references: `01-Tuning-Libra
 - Use explicitly labeled semitone offset for **MIDI playback only**. Original TAB fingering, notation and fretboard positions remain unchanged.
 - Active fretboard notes use warm gold/yellow; other notes from the current source measure use neutral gray.
 - Responsive reflow and accessibility must take priority over pixel-perfect fixed-width screenshot matching.
-
-## C0–C1 design acceptance
-
-Use the approved color/typography/nav direction only; keep the shell cohesive and responsive. Do **not** spend the first implementation pass on complex SVG headstock illustration, real song table, a new player arrangement or elaborate marketing imagery. The core objective is navigation and lifecycle reliability.

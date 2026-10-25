@@ -1,0 +1,17 @@
+:root {
+  color-scheme: dark;
+  --bg: #101419;
+  --panel: #171c22;
+  --panel-raised: #202831;
+  --hover: #29323c;
+  --border: #38434d;
+  --text: #edf0f1;
+  --muted: #a0aab2;
+  --accent: #d78b59;
+  --accent-light: #e5aa78;
+  --accent-bg: #342923;
+  --mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+  font: 14px/1.55 'Segoe UI', Arial, sans-serif;
+  color: var(--text);
+  background: var(--bg);
+}

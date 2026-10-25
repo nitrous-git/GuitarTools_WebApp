@@ -1,33 +1,28 @@
-# Guitar Tools — Agent Instructions
+# Guitar Tools — Agent Rules
 
-Role: lead developer of a static browser-based musician's workstation. Preserve musical correctness and a working reader before improving presentation.
+Build a professional, compact guitarist's workstation. The **active task, scope and branch are provided directly in Work**; this file is permanent project guidance, not a stage-specific prompt.
 
-## Current task and reading order
+## Read only what is needed
 
-**Current substage:** Stage C0–C1 (application foundation) on owner-created `stage-c-app-foundation`, based on **latest `master`**. Do not assume `main` exists. Stage A visuals were approved; Stage B engine exists and is working. **Do not implement C2–C5 during C0–C1.**
+1. This file; then the user's current Work task.
+2. Relevant sections of `docs/ARCHITECTURE.md` and source files.
+3. Consult `docs/PROJECT_BRIEF.md`, `docs/ROADMAP.md`, `design/DESIGN_REVIEW.md` only if needed for product or visual decisions.
+4. Read `assets/vendor/README.md` before any alphaTab SDK/library work. Never read the multi-megabyte vendored core wholesale for routine changes.
 
-1. `README.md` — actual repository state and local setup.
-2. `docs/ASTRA_STAGE_C0_C1_PROMPT.md` — immediate implementation contract.
-3. `docs/STAGE_C_ACCEPTANCE.md` — C0/C1 exit conditions.
-4. `docs/ARCHITECTURE.md` — preserved code/data invariants.
-5. Relevant portions of `design/DESIGN_REVIEW.md`, `docs/STAGE_B_AUDIT.md`, `docs/STAGE_C_PLAN.md` only when needed.
+## Contracts to preserve
 
-Use focused source inspections rather than bulk-reading vendor modules or all documentation. Consult `assets/vendor/README.md` before touching alphaTab SDK code (avoid changing it).
+- GitHub Pages-compatible static HTML/CSS/vanilla JS ES modules. No Vite, React, backend or required production npm dependencies.
+- Preserve the tested, patched alphaTab 1.8.4 files, worker/worklet, Bravura and SoundFont paths, license notices and browser audio user-gesture behavior unless explicitly assigned an SDK upgrade.
+- Keep one functioning Player/adapter instance through navigation; avoid losing loaded score/settings or playing audio invisibly.
+- Playback-only transposition changes sounding MIDI pitch, **not** original score, TAB fret labels, tuning, fretboard coordinates or playback speed. Preserve percussion/shared-channel safeguards.
+- Store user tuning notes as MIDI numbers indexed by physical string **low-string to high-string**; never pitch-sort those values. alphaTab's tuning/string-index conventions require explicit conversion.
+- Imported Guitar Pro bytes are user-owned source material; do not upload, mutate, or falsely claim format compatibility. Use DOM `textContent` for imported metadata.
+- Preserve meaningful automated regression tests and report PASS/FAIL/NOT TESTED truthfully. Do not remove tests to achieve a green result.
+- Respect approved charcoal/copper workstation direction, usable mobile fallbacks, visible keyboard focus and accessibility.
+- No unrequested feature creep (microphone tuner, recording, GP editor, account/cloud features).
 
-## Nonnegotiables
+## Delivery policy
 
-- Static GitHub Pages-compatible HTML/CSS/vanilla JS ES modules. No runtime bundler, backend, logins, React/Vite or mandatory npm.
-- **Keep the self-hosted, patched alphaTab 1.8.4 assets intact**, including worker/worklet, Bravura, Sonivox and licenses. Do not upgrade or re-download the SDK in C0–C1.
-- Preserve Stage B import/render/playback, layouts, zoom, mute/solo, speed, loop, seeking, pitch shifting and diagnostic fretboard. **Playback-only transposition must not modify notation, TAB or original string/fret mappings.** Protect percussion/shared channels.
-- Preserve the SDK string-index conventions: alphaTab staff tuning high-to-low; `Note.string` 1-based low-to-high. Future user tuning data will be MIDI-number arrays in string order low-to-high; never pitch-sort those arrays.
-- Hash routes: `#/tuning`, `#/library`, `#/player`; no server rewrite required. Default production route is Tuning. Maintain backward-compatible `?test` Stage B automation behavior or equivalently update tests and record the mapping.
-- Do not fake working Tuning Library or Song Library behavior in C1. Present truthful, polished placeholders; full implementations follow later.
-- Keep navigation accessible (keyboard/focus/active route), mobile-friendly, and based on Stage A's restrained charcoal/copper palette.
-- Do not silently discard user-imported score state or create duplicate synth/worker instances during repeated route transitions.
-- Never claim all GP formats pass, GitHub Pages is verified, or source files persist until tested.
+Work in the user-specified branch, but **do not commit, push, merge, create pull requests or modify remote GitHub** unless a task expressly permits it. Deliver one ZIP of complete repository-relative modified/new files, no patches or migration scripts. Summarize changed files, tests actually executed and outstanding issues **in the Work response**, not as new permanent stage documentation.
 
-## Delivery and checks
-
-Implement one substage at a time. Return **one ZIP of full changed/new files in repo-relative paths**, not patches or migration scripts. Include `docs/STAGE_C0_C1_RESULTS.md` with direct PASS/FAIL/NOT TESTED evidence and any regression limitations. Preserve meaningful existing tests; update them when the shell changes.
-
-**No commits, pushes, merges, PRs, or remote repository modifications.** The repository owner handles branch creation, extracting, testing and pushing.
+Do not create `ASTRA_*_PROMPT.md`, phase-specific acceptance docs or results reports in the repository unless expressly requested. Keep existing foundational docs stable; update them only for a genuine enduring architecture/product change.

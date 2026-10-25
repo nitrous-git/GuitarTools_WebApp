@@ -1,0 +1,194 @@
+/* Scoped workstation layout; the Player and headstock artwork are unchanged. */
+#workspace:has(.tuning-page:not([hidden])) { max-width: 1760px; padding: 30px; }
+.tuning-page .page-heading { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding-bottom: 8px; }
+.tuning-page .page-heading p:last-child { margin: 0; color: var(--muted); }
+.tuning-page h1 { margin-bottom: 4px; }
+.tuning-header-actions, .tuning-segment { display: flex; align-items: center; gap: 10px; }
+.tuning-segment { padding: 3px; gap: 2px; border: 1px solid var(--border); border-radius: 6px; }
+.tuning-workstation { display: grid; grid-template-columns: 290px minmax(0, 1fr) 335px; gap: 16px; align-items: stretch; min-height: 754px; }
+.tuning-surface { min-width: 0; min-height: 0; background: linear-gradient(135deg, #1c2329, #171c22); border: 1px solid var(--border); border-radius: 8px; }
+.tuning-page h2 { margin: 0; font-size: 14px; }
+.tuning-page h3 { margin: 0; font: inherit; }
+.tuning-page input, .tuning-page select, .tuning-page textarea, .tuning-page button { font: inherit; color: var(--text); background: #12191f; border: 1px solid #465560; border-radius: 5px; min-width: 0; max-width: 100%; }
+.tuning-page input, .tuning-page select, .tuning-page textarea { padding: 10px 12px; width: 100%; }
+.tuning-page textarea { resize: vertical; min-height: 100px; line-height: 1.5; }
+.tuning-page button, .tuning-page select, .tuning-page summary { cursor: pointer; }
+.tuning-page button { min-height: 36px; padding: 7px 12px; }
+.tuning-page button:hover:not(:disabled), .tuning-page select:hover { border-color: var(--accent); background-color: var(--panel-raised); }
+.tuning-page button:disabled { opacity: .45; cursor: default; }
+.tuning-page #tuning-new, .tuning-page #tuning-save { background: #c98555; border-color: #dda477; color: #171411; font-weight: 600; }
+.tuning-page .tuning-segment button { border: 0; background: transparent; font-size: 12px; }
+.tuning-page .tuning-segment [aria-pressed=true] { color: #f0b783; background: #44372f; }
+.tuning-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 18px; border-bottom: 1px solid var(--border); }
+.tuning-panel-heading > span, .tuning-list-heading { color: var(--muted); font: 10px/1.5 var(--mono); letter-spacing: .8px; }
+.tuning-library .tuning-panel-heading { border: 0; padding: 20px 20px 8px; }
+.tuning-library h2 { color: var(--muted); font: 10px var(--mono); text-transform: uppercase; letter-spacing: 1px; }
+.tuning-search-label { display: block; margin: 0 17px 16px; }
+.tuning-search-label input { padding: 5px 10px; font-size: 12px; }
+.tuning-list-heading { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin: 14px 18px; }
+.tuning-filters { position: relative; font: 10px var(--mono); letter-spacing: 0; }
+.tuning-filters > div { position: absolute; right: 0; top: 24px; width: 240px; z-index: 4; background: var(--panel); border: 1px solid var(--border); box-shadow: 0 10px 25px #0008; border-radius: 6px; }
+#tuning-presets { padding: 0 12px; display: grid; gap: 4px; max-height: 430px; overflow-y: auto; }
+.tuning-page .tuning-preset { position: relative; width: 100%; text-align: left; padding: 12px 22px 12px 46px; display: grid; gap: 3px; background: transparent; border-color: transparent; min-height: 57px; }
+.tuning-preset::before { content: '♬'; position: absolute; left: 10px; top: 16px; border: 1px solid #49565e; border-radius: 5px; width: 24px; height: 24px; display: grid; place-items: center; color: #a2b0b9; }
+.tuning-preset strong { font-size: 12px; font-weight: 600; overflow-wrap: anywhere; }
+.preset-notes { color: #9aabb7; font: 9px/1.6 var(--mono); overflow-wrap: anywhere; }
+.preset-count { position: absolute; right: 10px; top: 20px; color: var(--muted); font: 10px var(--mono); }
+.preset-draft { color: var(--accent-light); font: 9px var(--mono); }
+.preset-draft:empty { display: none; }
+.tuning-page .tuning-preset[aria-pressed=true] { border-color: #77553e; background: var(--accent-bg); box-shadow: inset 3px 0 var(--accent); }
+#tuning-empty { margin: 20px; font-size: 12px; color: var(--muted); }
+.tuning-collections { border-top: 1px solid var(--border); margin: 18px 12px 0; padding-top: 2px; }
+.tuning-collections .tuning-list-heading { margin: 8px; }
+.tuning-page #tuning-manage-collections { background: transparent; border: 0; min-height: 28px; padding: 0 6px; }
+.tuning-page .tuning-collection { display: flex; justify-content: space-between; gap: 10px; text-align: left; width: 100%; border: 0; background: transparent; font-size: 12px; color: #b7c2c9; }
+.tuning-collection span:first-child { overflow-wrap: anywhere; }
+.tuning-collection span:last-child { font: 10px/1.8 var(--mono); color: #91a4ae; }
+.tuning-page .tuning-collection[aria-pressed=true] { background: #273139; color: var(--text); }
+#tuning-storage-status { font-size: 10px; line-height: 1.5; color: var(--muted); margin: 14px 20px; }
+.tuning-stage { display: flex; flex-direction: column; overflow: hidden; }
+.tuning-stage-heading { padding: 18px 22px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.tuning-stage-heading > div { min-width: 0; }
+#draft-title { font-size: 16px; overflow-wrap: anywhere; }
+#tuning-summary { color: #9aadb8; font: 10px/1.8 var(--mono); margin: 5px 0 0; }
+#tuning-badge { flex-shrink: 0; border: 1px solid #725039; background: #342923; border-radius: 3px; padding: 3px 6px; color: var(--accent-light); font: 9px var(--mono); }
+.headstock-workspace { position: relative; width: min(100%, 820px); margin: auto; background: radial-gradient(ellipse, #2d3031 0, transparent 67%); }
+#tuning-vector { width: 68%; margin: auto; }
+.tuning-headstock { display: block; width: 100%; height: auto; }
+.headstock-peg { cursor: pointer; }
+.headstock-peg:focus { outline: none; }
+.headstock-peg:focus-visible .peg-ring { stroke: #fff2c6; stroke-width: 5; }
+.headstock-peg:hover .peg-ring, .headstock-peg.is-active .peg-ring { stroke: var(--accent-light); }
+.headstock-peg.is-active .headstock-wire { stroke: var(--accent-light); }
+.peg-control { position: absolute; width: 24%; transform: translateY(-50%); display: grid; grid-template-columns: minmax(0, 1fr) 32px; gap: 5px 8px; align-items: center; }
+.peg-control-left { left: 3%; }
+.peg-control-right { right: 3%; grid-template-columns: 32px minmax(0, 1fr); }
+.peg-control > span { grid-column: 1 / -1; font: 10px var(--mono); color: #e5aa78; }
+.peg-control-right > span { text-align: right; }
+.peg-control-right select { grid-column: 2; grid-row: 2; }
+.peg-control-right button { grid-column: 1; grid-row: 2; }
+.peg-control select { background: #28323a; padding: 10px; font-family: var(--mono); height: 42px; box-shadow: 0 5px 16px #0003; }
+.tuning-page .tuning-string-play { padding: 0; width: 32px; min-height: 32px; border-radius: 50%; background: #29353c; color: #d7e1e5; font-size: 12px; }
+.peg-control.is-active select { border-color: var(--accent); }
+.peg-control.is-playing select { border-color: #efce8b; box-shadow: 0 0 0 1px #efce8b; }
+.headstock-peg.is-playing .headstock-wire, .headstock-peg.is-playing .peg-ring { stroke: #efce8b; }
+.tuning-stage-legend { margin: 12px 22px; color: #8fa3b1; font: 9px/1.7 var(--mono); text-transform: uppercase; display: flex; flex-wrap: wrap; gap: 8px 20px; }
+.tuning-stage-footer { margin-top: auto; border-top: 1px solid var(--border); padding: 12px 18px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px; }
+.tuning-stage-footer button { font-size: 12px; }
+.tuning-audio-controls { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.tuning-audio-controls label { font-size: 10px; color: var(--muted); display: grid; gap: 2px; width: 100px; }
+.tuning-audio-controls input { padding: 0; accent-color: var(--accent); }
+#tuning-audio-status { flex-basis: 100%; color: var(--muted); font-size: 10px; margin: 0; }
+.tuning-details { display: flex; flex-direction: column; }
+.tuning-details .tuning-panel-heading { padding: 8px 18px; }
+.tuning-editor-body { padding: 4px 19px 12px; }
+.tuning-field { display: grid; gap: 8px; margin: 14px 0 16px; color: #a0b0bb; font: 10px var(--mono); text-transform: uppercase; letter-spacing: .4px; }
+.tuning-field input, .tuning-field select, .tuning-field textarea { font: 14px/1.5 'Segoe UI', Arial, sans-serif; text-transform: none; letter-spacing: 0; }
+.tuning-filters .tuning-field { margin: 16px; }
+.tuning-note-heading { margin: 0 0 8px; color: #a0b0bb; font: 10px var(--mono); text-transform: uppercase; letter-spacing: .4px; }
+#tuning-note-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+.tuning-page .tuning-note-chip { flex: 1 0 30px; padding: 6px 3px; font: 11px var(--mono); min-height: 34px; }
+.tuning-note-chip[aria-expanded=true] { border-color: var(--accent); }
+.tuning-string-row { display: grid; grid-template-columns: 18px 1fr 1fr 42px; gap: 5px; align-items: center; margin-top: 10px; }
+.tuning-string-row select { padding: 7px; }
+.string-number, .string-midi { font: 10px var(--mono); color: var(--accent-light); }
+.tuning-category-assignment { margin: 16px 0; color: #a0b0bb; font: 10px var(--mono); text-transform: uppercase; }
+#tuning-metadata { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border); color: #92a5b1; font: 10px/1.8 var(--mono); text-transform: uppercase; }
+#tuning-metadata strong { display: block; font-weight: 400; color: #d1dbe0; text-transform: none; }
+.tuning-reference { padding: 12px 16px; margin: 8px 0 0; border: 1px solid #38514e; background: #202e30; border-radius: 6px; color: #9abbb4; font-size: 11px; line-height: 1.6; }
+.tuning-reference strong { color: #d0e4dc; }
+#tuning-status { font-size: 11px; color: var(--accent-light); margin: 0 19px 12px; flex-shrink: 0; }
+.tuning-save-actions { border-top: 1px solid var(--border); display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 18px; margin-top: auto; }
+.tuning-more { position: relative; }
+.tuning-more > summary { list-style: none; border: 1px solid #465560; border-radius: 5px; background: #252e36; padding: 7px 10px; min-height: 36px; text-align: center; font-size: 12px; font-weight: 600; }
+.tuning-more-content { position: absolute; bottom: calc(100% + 8px); right: 0; width: 296px; max-width: calc(100vw - 48px); max-height: 65dvh; overflow: auto; padding: 12px; background: #20272e; border: 1px solid #53616a; border-radius: 6px; z-index: 5; box-shadow: 0 12px 32px #0009; display: grid; gap: 8px; }
+.tuning-more-content button { width: 100%; text-align: left; }
+.tuning-more-content p { font-size: 11px; margin: 8px 0; }
+.tuning-category-management { border-block: 1px solid var(--border); padding: 10px 0; font-size: 12px; }
+.tuning-category-management label { display: grid; gap: 6px; margin: 10px 0; }
+.tuning-category-management button { margin: 5px 0; }
+.tuning-backup { display: grid; gap: 8px; }
+.visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+@media (max-width: 1499px) {
+  .tuning-workstation { grid-template-columns: 240px minmax(0, 1fr) 295px; gap: 14px; }
+  #workspace:has(.tuning-page:not([hidden])) { padding: 24px; }
+  .tuning-stage-heading { flex-wrap: wrap; }
+}
+@media (max-width: 1150px) {
+  .tuning-workstation { grid-template-columns: 240px minmax(0, 1fr); }
+  .tuning-details { grid-column: 1 / -1; }
+  .tuning-editor-body { display: grid; grid-template-columns: 1fr 1fr; gap: 0 24px; }
+  .tuning-note-heading, #tuning-note-chips, #tuning-note-editor, #tuning-status { grid-column: 1 / -1; }
+  .tuning-save-actions { display: flex; justify-content: flex-end; }
+  .tuning-more, #tuning-save { min-width: 140px; }
+  .tuning-header-actions { flex-wrap: wrap; justify-content: flex-end; }
+}
+@media (max-width: 700px) {
+  #workspace:has(.tuning-page:not([hidden])) { padding: 20px 12px; }
+  .tuning-page .page-heading { align-items: flex-start; flex-direction: column; gap: 16px; padding-bottom: 16px; }
+  .tuning-header-actions { justify-content: flex-start; gap: 8px; }
+  .tuning-workstation { grid-template-columns: minmax(0, 1fr); }
+  #tuning-presets { max-height: 185px; }
+  #tuning-collections { display: grid; grid-template-columns: 1fr 1fr; }
+  .tuning-stage-heading { padding: 16px; }
+  .tuning-editor-body { display: block; }
+  .headstock-workspace { margin-block: 30px; }
+  .peg-control { width: 27%; gap: 3px; grid-template-columns: minmax(0, 1fr) 26px; }
+  .peg-control-left { left: 1%; } .peg-control-right { right: 1%; grid-template-columns: 26px minmax(0, 1fr); }
+  .peg-control select { height: 36px; padding: 3px 0; font-size: 12px; }
+  .peg-control > span { font-size: 8px; }
+  .tuning-page .tuning-string-play { width: 26px; min-height: 30px; font-size: 10px; }
+  .tuning-stage-legend { margin-inline: 16px; }
+  .tuning-save-actions { display: grid; }
+  .tuning-more, #tuning-save { min-width: 0; }
+  .tuning-more-content { left: 0; right: auto; }
+}
+.tuning-dialog { color: var(--text); background: var(--panel); border: 1px solid var(--border); border-radius: 8px; width: min(460px, calc(100vw - 32px)); max-height: calc(100dvh - 32px); padding: 24px; }
+.tuning-dialog::backdrop { background: #05090dd9; }
+.tuning-dialog h2 { font-size: 19px; margin: 0 0 12px; }
+.tuning-dialog p { color: var(--muted); }
+.tuning-dialog label { display: grid; gap: 8px; }
+.tuning-dialog input, .tuning-dialog button { color: var(--text); background: var(--panel-raised); border: 1px solid var(--border); padding: 10px; border-radius: 5px; font: inherit; min-width: 0; }
+.tuning-dialog button { cursor: pointer; }
+.tuning-dialog button:hover { border-color: var(--accent); }
+.dialog-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; margin-top: 20px; }
+
+@media (max-width: 900px) {
+  #tuning-vector { width: 100%; max-width: 380px; }
+  #tuning-peg-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px 20px; padding: 10px 16px; }
+  .peg-control { position: static; transform: none; width: 100%; grid-row: var(--peg-row); grid-template-columns: minmax(0, 1fr) 32px; }
+  .peg-control-left { grid-column: 1; } .peg-control-right { grid-column: 2; grid-template-columns: 32px minmax(0, 1fr); }
+  .peg-control > span { font-size: 10px; }
+  .tuning-page .tuning-string-play { width: 32px; min-height: 36px; }
+  .peg-control select { height: 40px; padding: 5px; }
+  .headstock-workspace { margin-block: 12px; }
+}
+@media (min-width: 1151px) {
+  .tuning-workstation { height: 754px; }
+  .tuning-library { display: flex; flex-direction: column; overflow: hidden; }
+  #tuning-presets { flex: 1; min-height: 120px; }
+  .tuning-collections { max-height: 180px; overflow: hidden; flex-shrink: 0; }
+  .tuning-editor-body { overflow-y: auto; min-height: 0; }
+  .tuning-save-actions { flex-shrink: 0; }
+  .headstock-workspace { width: min(100%, 720px); }
+  .tuning-stage-heading { padding-block: 14px; }
+  .tuning-stage-legend { margin-block: 8px; }
+}
+
+/* Compact cards have fixed tracks; empty list space never stretches content. */
+#tuning-presets { align-content: start; grid-auto-rows: 64px; }
+.tuning-page .tuning-preset { height: 64px; min-height: 64px; padding: 6px 22px 6px 46px; grid-template-rows: 18px 16px 12px; gap: 2px; align-content: start; }
+.tuning-preset strong, .preset-notes { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preset-draft { line-height: 12px; }
+.tuning-collections { display: flex; flex-direction: column; overflow: hidden; }
+.tuning-collections .tuning-list-heading { flex-shrink: 0; }
+#tuning-collections { overflow-y: auto; min-height: 0; max-height: 180px; }
+.tuning-page #tuning-manage-collections { font-size: 22px; width: 32px; min-height: 32px; border: 1px solid var(--border); border-radius: 5px; }
+.tuning-page #tuning-delete { width: 100%; margin: 14px 0 4px; color: #e5a595; border-color: #755047; }
+#tuning-legacy-collections { color: var(--muted); font-size: 10px; }
+#tuning-no-selection { grid-column: 2 / -1; align-self: center; text-align: center; color: var(--muted); padding: 30px; }
+@media (max-width: 700px) { #tuning-no-selection { grid-column: 1; } }
+
+.tuning-details .tuning-field { margin: 12px 0 14px; }
+.tuning-details .tuning-field input, .tuning-details .tuning-field select, .tuning-details .tuning-field textarea { padding-block: 8px; line-height: 1.4; }
+.tuning-details textarea { min-height: 80px; }

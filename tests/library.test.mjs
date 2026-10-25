@@ -1,0 +1,47 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import { createRequire } from 'node:module';
+import { STORES, transaction, requestResult as read } from '../src/storage/db.js';
+import { createSongRepository } from '../src/storage/songRepository.js';
+import { createTuningRepository } from '../src/storage/tuningRepository.js';
+import { createLibraryBackup } from '../src/storage/libraryBackup.js';
+import { encodeZip, decodeZip } from '../src/storage/libraryZip.js';
+import { parseSong, MAX_SONG_BYTES } from '../src/services/songImport.js';
+import { FACTORY_PRESETS, createDraft } from '../src/domain/tunings.js';
+const require=createRequire(import.meta.url);
+const { IDBFactory, IDBObjectStore }=require(process.env.FAKE_INDEXEDDB_MODULE||'fake-indexeddb');
+const bytes=fs.readFileSync(new URL('fixtures/public/stage-b-generated.gp',import.meta.url));
+const parsed=()=>parseSong(new File([bytes],'exercise.gp'));
+async function setup(){const factory=new IDBFactory();const db=await new Promise((resolve,reject)=>{const r=factory.open('library',2);r.onupgradeneeded=()=>STORES.forEach(s=>r.result.createObjectStore(s,{keyPath:s==='preferences'?'key':'id'}));r.onsuccess=()=>resolve(r.result);r.onerror=()=>reject(r.error);});const open=async()=>db;return {db,repo:createSongRepository(open),tuning:createTuningRepository(open),backup:createLibraryBackup(open),all:()=>transaction(STORES,'readonly',async tx=>Object.fromEntries(await Promise.all(STORES.map(async s=>[s,await read(tx.objectStore(s).getAll())]))),open)};}
+test('bundled GP content parser extracts actual tracks, tempo and physical 6/7/8 string order',async()=>{const p=await parsed();assert.equal(p.metadata.format,'gp');assert.equal(p.metadata.tempo,120);assert.equal(p.metadata.tracks.length,4);assert.deepEqual(p.metadata.tracks.slice(0,3).map(t=>t.staves[0].notesLowToHigh.length),[6,7,8]);assert.deepEqual(p.metadata.tracks[0].staves[0].notesLowToHigh,[40,45,50,55,59,64]);assert.deepEqual(Buffer.from(p.bytes),bytes);});
+test('empty, unsupported, corrupt, disguised text and oversized files are rejected by filename',async()=>{for(const file of [new File([],'empty.gp'),new File([bytes],'wrong.mp3'),new File(['broken'],'bad.gp'),new File(['\\title "not GP" . 1.1.4'],'disguised.gp'),{name:'large.gp',size:MAX_SONG_BYTES+1}])await assert.rejects(parseSong(file),e=>e.message.startsWith(`${file.name}:`));});
+test('duplicate entry choices reuse bytes; metadata and multi-membership survive, deleting shared files is reference-safe',async()=>{const {repo,all}=await setup(),p=await parsed(),a=await repo.add(p);assert.equal(await repo.add(p),null);const b=await repo.add(p,true),c=await repo.saveCollection('Practice'),d=await repo.saveCollection('Metal');let s=await repo.update(a,{title:'My title',notes:'Practice slowly',favorite:true,collectionIds:[c.id,d.id]});assert.equal((await all()).songFiles.length,1);await assert.rejects(repo.update(a,{notes:'stale'}),/another tab/);assert.deepEqual(Buffer.from(await (await repo.file(s)).arrayBuffer()),bytes);await repo.removeCollection(c);s=(await repo.snapshot()).songs.find(x=>x.id===a.id);assert.deepEqual(s.collectionIds,[d.id]);assert(s.favorite);await repo.remove(s);assert.equal((await all()).songFiles.length,1);await repo.remove(b);assert.equal((await all()).songFiles.length,0);});
+async function populated(){const a=await setup();const song=await a.repo.add(await parsed()),collection=await a.repo.saveCollection('Songs');await a.repo.update(song,{notes:'Keep original bytes',favorite:true,collectionIds:[collection.id]});const category=await a.tuning.createCategory('Tunings');await a.tuning.createTuning({...createDraft(FACTORY_PRESETS[0]),favorite:true,categoryIds:[category.id]});await a.tuning.setPreference('previewVolume',.23);await a.tuning.setFactoryPreset({id:FACTORY_PRESETS[0].id,collectionId:category.id,deleted:false});return a;}
+test('ZIP full backup round-trip restores clean profile, exact bytes, metadata, memberships and tuning preferences',async()=>{const a=await populated(),b=await setup(),zip=await a.backup.export(),preview=await b.backup.preview(zip);const n=await b.backup.restore(preview);assert.equal(n.songs,1);assert.equal(n.tunings,1);assert.deepEqual(await b.all(),await a.all());assert.deepEqual(Buffer.from(await (await b.repo.file((await b.repo.snapshot()).songs[0])).arrayBuffer()),bytes);const repeat=await b.backup.restore(await b.backup.preview(zip));assert.equal(repeat.songs,0);assert.equal(repeat.tunings,0);});
+test('ID collisions remap relationships and preserve existing content/preferences',async()=>{const a=await populated(),b=await setup(),zip=await a.backup.export();await b.backup.restore(await b.backup.preview(zip));let s=(await b.repo.snapshot()).songs[0];await b.repo.update(s,{title:'Local title'});const c=(await b.repo.snapshot()).collections[0];await b.repo.saveCollection('Local collection',c);const t=(await b.tuning.snapshot()).tunings[0];await b.tuning.updateTuning({...t,name:'Local tuning'});await b.tuning.setPreference('previewVolume',.9);const preview=await b.backup.preview(zip);assert.equal(preview.collisions.songs,1);await b.backup.restore(preview);const result=await b.all();assert.equal(result.songs.length,2);assert.equal(result.songFiles.length,1);assert.equal(result.tunings.length,2);assert.equal(result.songCollections.length,2);const restored=result.songs.find(s=>s.title!=='Local title');assert.notEqual(restored.collectionIds[0],c.id);assert.equal((await b.tuning.snapshot()).preferences.previewVolume,.9);});
+test('malformed paths, CRC corruption and bad manifest references/checksums are rejected without writes',async()=>{const a=await populated(),b=await setup(),zip=await a.backup.export();const raw=new Uint8Array(await zip.arrayBuffer());raw[70]^=1;await assert.rejects(b.backup.preview(new Blob([raw])));assert.throws(()=>encodeZip([['../escape',new Uint8Array([1])]]),/Unsafe/);const entries=await decodeZip(zip),m=JSON.parse(new TextDecoder().decode(entries.get('manifest.json')));m.songs[0].collectionIds=['missing'];entries.set('manifest.json',new TextEncoder().encode(JSON.stringify(m)));await assert.rejects(b.backup.preview(encodeZip([...entries])),/reference/);assert.equal((await b.all()).songs.length,0);});
+test('restore write failure rolls back songs, files, collections and tunings together',async()=>{const a=await populated(),b=await setup(),preview=await b.backup.preview(await a.backup.export());const original=IDBObjectStore.prototype.add;IDBObjectStore.prototype.add=function(value){if(this.name==='tunings')throw new Error('Simulated quota failure');return original.call(this,value);};try{await assert.rejects(b.backup.restore(preview),/quota/);}finally{IDBObjectStore.prototype.add=original;}for(const records of Object.values(await b.all()))assert.equal(records.length,0);});
+test('schema v1 migration is additive and retains real tuning/category/preference records',async()=>{globalThis.indexedDB=new IDBFactory();const old=await new Promise(resolve=>{const r=indexedDB.open('guitar-tools-user-data',1);r.onupgradeneeded=()=>['tunings','categories','preferences'].forEach(s=>r.result.createObjectStore(s,{keyPath:s==='preferences'?'key':'id'}));r.onsuccess=()=>resolve(r.result);});const repo=createTuningRepository(async()=>old),c=await repo.createCategory('Preserved'),t=await repo.createTuning({...createDraft(FACTORY_PRESETS[0]),categoryIds:[c.id],favorite:true});await repo.setPreference('previewVolume',.4);old.close();const {openDatabase}=await import('../src/storage/db.js');const upgraded=await openDatabase();assert.equal(upgraded.version,2);assert.deepEqual(Array.from(upgraded.objectStoreNames).sort(),[...STORES].sort());const after=await createTuningRepository(async()=>upgraded).snapshot();assert.deepEqual(after.tunings,[t]);assert.deepEqual(after.categories,[c]);assert.equal(after.preferences.previewVolume,.4);upgraded.close();});
+test('backup rejects SHA-256 mismatch even with valid ZIP CRC, tampered metadata, and missing files',async()=>{
+  const a=await populated(),b=await setup(),zip=await a.backup.export();
+  for(const kind of ['sha','metadata','missing','size']){
+    const entries=await decodeZip(zip),m=JSON.parse(new TextDecoder().decode(entries.get('manifest.json'))),f=m.files[0];
+    if(kind==='sha'){const content=entries.get(f.path);content[content.length-1]^=1;}
+    if(kind==='metadata')m.songs[0].tracks[0].staves[0].notesLowToHigh.reverse();
+    if(kind==='missing')entries.delete(f.path);
+    if(kind==='size')f.size++;
+    entries.set('manifest.json',new TextEncoder().encode(JSON.stringify(m)));
+    await assert.rejects(b.backup.preview(encodeZip([...entries])));
+  }
+  assert.equal((await b.all()).songs.length,0);
+});
+test('ZIP reader rejects traversal names, truncation, and declared oversized archives',async()=>{
+  const zip=encodeZip([['manifest.json',new TextEncoder().encode('{}')]]),raw=new Uint8Array(await zip.arrayBuffer());
+  const needle=new TextEncoder().encode('manifest.json'),replacement=new TextEncoder().encode('../evilxx.txt');
+  assert.equal(needle.length,replacement.length);
+  for(let i=0;i<=raw.length-needle.length;i++)if(needle.every((b,j)=>raw[i+j]===b))raw.set(replacement,i);
+  await assert.rejects(decodeZip(new Blob([raw])),/Unsafe/);
+  await assert.rejects(decodeZip(new Blob([raw.slice(0,-1)])));
+  await assert.rejects(decodeZip({size:257*1024*1024}),/256 MiB/);
+});
