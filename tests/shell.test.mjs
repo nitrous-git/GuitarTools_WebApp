@@ -60,11 +60,64 @@ try {
     await page.setViewportSize({ width, height: 900 });
     for (const name of ['tuning', 'library']) {
       await route(name); await fits();
-      assert.equal(await page.locator('#workspace article:not([hidden]) button').count(), 0);
+      if (name === 'library') assert.equal(await page.locator('#workspace article:not([hidden]) button').count(), 0);
+      else assert.equal(await page.locator('.headstock-peg').count(), 6);
       if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, `${name}-${width}.png`), fullPage: true });
     }
   }
-  console.log('PASS default/direct/reload/history/fallback, lazy SDK, placeholders, keyboard skip link, desktop/mobile');
+  console.log('PASS default/direct/reload/history/fallback, lazy SDK, tuning interface, Song placeholder, keyboard skip link, desktop/mobile');
+  await route('tuning');
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await page.locator('[data-preset="drop-c"]').click();
+  assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '36');
+  await page.getByLabel('String 6 octave', { exact: true }).selectOption('5');
+  assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '72');
+  assert.equal(await page.locator('#tuning-badge').textContent(), 'EDITED DRAFT');
+  await page.locator('#tuning-name').fill('Reentrant experiment');
+  await page.locator('#tuning-name').press('Tab');
+  await page.locator('#tuning-description').fill('<img src=x onerror=alert(1)>');
+  assert.equal(await page.locator('.tuning-details img').count(), 0);
+  await page.locator('[data-preset="standard-e"]').click();
+  assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '40');
+  await page.locator('[data-preset="drop-c"]').click();
+  assert.equal(await page.locator('#tuning-name').inputValue(), 'Reentrant experiment');
+  assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '72');
+  await route('library'); await route('tuning');
+  assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '72');
+  await page.locator('#tuning-search').fill('dadgad');
+  assert.equal(await page.locator('.tuning-preset').count(), 1);
+  await page.locator('#tuning-search').fill('no match');
+  assert(await page.locator('#tuning-empty').isVisible());
+  await page.locator('#tuning-search').fill('');
+  for (const count of [6, 7, 8]) {
+    await page.selectOption('#tuning-count', String(count));
+    assert.equal(await page.locator('.headstock-peg').count(), count);
+    assert.equal(await page.locator('.peg-control-left').count(), Math.floor(count / 2));
+    assert.equal(await page.locator('.peg-control-right').count(), Math.ceil(count / 2));
+    for (let number = count; number >= 1; number--) {
+      const peg = page.locator(`.headstock-peg[data-string="string-${number}"]`);
+      await peg.focus(); await page.keyboard.press(number % 2 ? 'Enter' : 'Space');
+      assert.equal(await page.evaluate(() => document.activeElement.id), `tuning-string-${number}-pitch`);
+      await page.getByLabel(`String ${number} full note`, { exact: true }).selectOption(String(30 + number));
+      assert.equal(await page.getByLabel(`String ${number} pitch class`, { exact: true }).inputValue(), String((30 + number) % 12));
+      assert.equal(await page.getByLabel(`String ${number} octave`, { exact: true }).inputValue(), String(Math.floor((30 + number) / 12) - 1));
+    }
+    for (const width of [1760, 1280, 900, 650, 390, 280]) {
+      await page.setViewportSize({ width, height: 900 }); await fits();
+      if (process.env.SCREENSHOT_DIR && [1760, 390].includes(width)) await page.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, `tuning-${count}-${width}.png`), fullPage: true });
+    }
+  }
+  await page.getByLabel('String 1 full note', { exact: true }).selectOption('127');
+  assert.equal(await page.getByLabel('String 1 pitch class', { exact: true }).locator('option:disabled').count(), 4);
+  await page.getByLabel('String 1 full note', { exact: true }).selectOption('0');
+  assert.equal(await page.getByLabel('String 1 octave', { exact: true }).inputValue(), '-1');
+  await page.locator('#tuning-reset').click();
+  assert.equal(await page.getByLabel('String 8 full note', { exact: true }).inputValue(), '30');
+  assert(await page.locator('#tuning-reset').isDisabled());
+  await page.reload();
+  assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '40');
+  assert(!requests.some(url => url.includes('alphaTab')));
+  console.log('PASS preset search, independent drafts, reset/reload, navigation retention, 6/7/8 peg editing, keyboard Enter/Space, MIDI boundaries, responsive 280–1760px');
   await page.goto(`${base}?test#/player`);
   await page.waitForFunction(() => window.stageB?.api.tickCache?.masterBars.length === 6 && document.querySelector('#score svg'));
   await page.reload();

@@ -1,0 +1,82 @@
+/* Tuning workstation: scoped so the retained Player is unaffected. */
+.tuning-page .page-heading { padding-bottom: 16px; }
+.tuning-page .page-heading p:last-child { margin: 0; }
+.tuning-workstation { display: grid; grid-template-columns: 220px minmax(0, 1fr) 280px; gap: 14px; align-items: stretch; }
+.tuning-surface { min-width: 0; background: linear-gradient(135deg, #1c2329, #171c22); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.tuning-page h2 { margin: 0; font-size: 15px; }
+.tuning-page h3 { margin: 0; font-size: 12px; font-weight: 500; }
+.tuning-panel-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 16px; border-bottom: 1px solid var(--border); }
+.tuning-panel-heading > span, .tuning-note-heading > span { color: var(--muted); font: 10px var(--mono); }
+.tuning-page input, .tuning-page select, .tuning-page textarea, .tuning-page button { font: inherit; color: var(--text); background: #12191f; border: 1px solid #465560; border-radius: 5px; min-width: 0; max-width: 100%; }
+.tuning-page input, .tuning-page select, .tuning-page textarea { padding: 9px; width: 100%; }
+.tuning-page textarea { resize: vertical; min-height: 76px; }
+.tuning-page button, .tuning-page select { cursor: pointer; }
+.tuning-page button:hover:not(:disabled), .tuning-page select:hover { border-color: var(--accent); background-color: var(--panel-raised); }
+.tuning-page button:disabled { opacity: .45; cursor: default; }
+.tuning-field { display: grid; gap: 7px; margin: 16px; color: var(--muted); font-size: 12px; }
+#tuning-presets { padding: 0 10px; display: grid; gap: 6px; }
+.tuning-page .tuning-preset { width: 100%; text-align: left; padding: 12px; display: grid; gap: 5px; background: transparent; border-color: transparent; }
+.tuning-preset strong { font-size: 13px; font-weight: 600; }
+.preset-notes { color: var(--muted); font: 10px/1.6 var(--mono); overflow-wrap: anywhere; }
+.preset-draft { color: var(--muted); font-size: 10px; }
+.tuning-page .tuning-preset[aria-pressed=true] { border-color: #77553e; background: var(--accent-bg); box-shadow: inset 3px 0 var(--accent); }
+.tuning-preset[aria-pressed=true] .preset-draft { color: var(--accent-light); }
+.tuning-library-note, #tuning-empty { margin: 20px 16px; border-top: 1px solid var(--border); padding-top: 16px; font-size: 12px; color: var(--muted); }
+.tuning-stage { display: flex; flex-direction: column; }
+.tuning-stage-heading { padding: 16px 18px; border-bottom: 1px solid var(--border); display: flex; gap: 12px; align-items: center; justify-content: space-between; }
+.tuning-stage-heading > div { min-width: 0; }
+#draft-title { overflow-wrap: anywhere; }
+#tuning-summary { color: var(--muted); font: 10px/1.8 var(--mono); margin: 5px 0 0; }
+#tuning-badge { flex-shrink: 0; border: 1px solid #725039; border-radius: 3px; padding: 3px 6px; color: var(--accent-light); font: 9px var(--mono); }
+.headstock-workspace { position: relative; width: 100%; max-width: 700px; margin: auto; background: radial-gradient(ellipse, #2d3031 0, transparent 67%); }
+.tuning-headstock { display: block; width: 100%; height: auto; }
+.headstock-peg { cursor: pointer; }
+.headstock-peg:focus { outline: none; }
+.headstock-peg:focus-visible .peg-ring { stroke: #fff2c6; stroke-width: 5; }
+.headstock-peg:hover .peg-ring, .headstock-peg.is-active .peg-ring { stroke: var(--accent-light); }
+.headstock-peg.is-active .headstock-wire { stroke: var(--accent-light); }
+.peg-control { position: absolute; width: 20%; transform: translateY(-50%); display: grid; gap: 5px; }
+.peg-control-left { left: 3%; }
+.peg-control-right { right: 3%; }
+.peg-control > span { font: 10px var(--mono); color: var(--muted); }
+.peg-control-right > span { text-align: right; }
+.peg-control.is-active > span { color: var(--accent-light); }
+.peg-control select { background: #252f37; padding: 8px 5px; font-family: var(--mono); min-height: 38px; }
+.tuning-stage-footer { margin-top: auto; border-top: 1px solid var(--border); padding: 12px; display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.tuning-stage-footer > span { font: 10px/1.6 var(--mono); color: var(--muted); }
+.tuning-stage-footer button { padding: 8px 10px; flex-shrink: 0; }
+.tuning-note-heading { margin: 20px 16px 10px; display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--muted); }
+#tuning-note-editor { margin: 0 12px; display: grid; gap: 5px; }
+.tuning-string-row { display: grid; grid-template-columns: 20px minmax(0, 1fr) minmax(0, 1fr) 48px; align-items: center; gap: 6px; padding: 4px; border-radius: 4px; border-left: 2px solid transparent; }
+.tuning-string-row.is-active { background: #302720; border-left-color: var(--accent); }
+.tuning-string-row select { padding: 6px; min-height: 36px; }
+.string-number { color: var(--accent-light); text-align: center; font: 12px var(--mono); }
+.string-midi { color: var(--muted); font: 10px var(--mono); }
+.tuning-range-note { margin: 12px 16px; color: var(--muted); font-size: 11px; }
+#tuning-status { margin: 16px; padding-top: 12px; border-top: 1px solid var(--border); color: var(--accent-light); font-size: 12px; }
+.tuning-session-note { margin: 16px; padding: 12px; color: #b3c6c3; background: #202c2d; border: 1px solid #364b48; border-radius: 5px; font-size: 11px; }
+@media (min-width: 1500px) { #workspace:has(.tuning-page:not([hidden])) { max-width: 1760px; } .tuning-workstation { grid-template-columns: 270px minmax(0, 1fr) 320px; } }
+@media (max-width: 1100px) {
+  .tuning-workstation { grid-template-columns: 200px minmax(0, 1fr); }
+  .tuning-details { grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 1fr; align-items: start; }
+  .tuning-details .tuning-panel-heading { grid-column: 1 / -1; }
+  .tuning-note-heading, #tuning-note-editor, .tuning-range-note, #tuning-status, .tuning-session-note { grid-column: 1 / -1; }
+  #tuning-note-editor { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 650px) {
+  .tuning-workstation { grid-template-columns: minmax(0, 1fr); }
+  .tuning-library { display: grid; grid-template-columns: 1fr 1fr; }
+  .tuning-library .tuning-panel-heading, #tuning-presets, #tuning-empty, .tuning-library-note { grid-column: 1 / -1; }
+  .tuning-library .tuning-field { margin: 12px; }
+  #tuning-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); padding-bottom: 12px; }
+  .tuning-library-note { margin-top: 0; }
+  .tuning-stage-heading { padding: 14px 12px; flex-wrap: wrap; }
+  .headstock-workspace { max-width: 520px; }
+  .peg-control { width: 22%; }
+  .peg-control-left { left: 1%; } .peg-control-right { right: 1%; }
+  .peg-control select { font-size: 12px; padding: 5px 2px; }
+  .peg-control > span { font-size: 9px; }
+  .tuning-stage-footer { flex-wrap: wrap; }
+  .tuning-details { display: block; }
+  #tuning-note-editor { grid-template-columns: 1fr; }
+}
