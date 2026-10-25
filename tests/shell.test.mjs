@@ -5,6 +5,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { tuningReconstruction } from './tuningReconstruction.mjs';
 import { tuningIntegration } from './tuningIntegration.mjs';
 const require = createRequire(import.meta.url);
 const { chromium } = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
@@ -72,6 +73,7 @@ try {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.locator('[data-preset="drop-c"]').click();
   assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '36');
+  await page.locator('[aria-controls=editor-string-6]').click();
   await page.getByLabel('String 6 octave', { exact: true }).selectOption('5');
   assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '72');
   assert.equal(await page.locator('#tuning-badge').textContent(), 'UNSAVED DRAFT');
@@ -99,7 +101,7 @@ try {
     for (let number = count; number >= 1; number--) {
       const peg = page.locator(`.headstock-peg[data-string="string-${number}"]`);
       await peg.focus(); await page.keyboard.press(number % 2 ? 'Enter' : 'Space');
-      assert.equal(await page.evaluate(() => document.activeElement.id), `tuning-string-${number}-pitch`);
+      assert.equal(await page.evaluate(() => document.activeElement.id), `tuning-string-${number}-full`);
       await page.getByLabel(`String ${number} full note`, { exact: true }).selectOption(String(30 + number));
       assert.equal(await page.getByLabel(`String ${number} pitch class`, { exact: true }).inputValue(), String((30 + number) % 12));
       assert.equal(await page.getByLabel(`String ${number} octave`, { exact: true }).inputValue(), String(Math.floor((30 + number) / 12) - 1));
@@ -122,6 +124,7 @@ try {
   assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '40');
   assert(!requests.some(url => url.includes('alphaTab')));
   console.log('PASS preset search, independent drafts, reset/reload, navigation retention, 6/7/8 peg editing, keyboard Enter/Space, MIDI boundaries, responsive 280–1760px');
+  await tuningReconstruction({ browser, base });
   await tuningIntegration({ page, base, route, fits });
   await page.goto(`${base}?test#/player`);
   await page.waitForFunction(() => window.stageB?.api.tickCache?.masterBars.length === 6 && document.querySelector('#score svg'));
