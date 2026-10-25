@@ -1,56 +1,29 @@
-# Guitar Tools — Architecture & Invariants
+# Guitar Tools — Architecture
 
-Updated 2026-10-24. Stage C0–C1 is implemented on `stage-c-app-foundation`; browser acceptance is pending. The Stage B engine remains unchanged.
+## Runtime & existing modules
 
-## Preserved Stage B engine
+Static `index.html` plus vanilla ES modules, deployable to a GitHub Pages repository subpath. `src/main.js` bootstraps `src/app/App.js` and `src/app/router.js`. Three hash routes: `#/tuning` (default), `#/library`, `#/player`. `App` retains page instances. `src/ui/pages/PlayerPage.js` owns its page controls and hosts a **single, lazy** `AlphaTabAdapter`, preserving player state across navigation; leaving Player pauses audio. Tuning and Song pages evolve independently. Shared CSS: `src/styles/tokens.css`, `layout.css`, `player.css`.
 
-- `index.html`: shell plus inert player template. `src/main.js`: application bootstrap. `src/ui/pages/PlayerPage.js`: extracted Stage B control wiring, initialized once on first Player visit.
-- `src/services/alphaTabAdapter.js`: alphaTab `AlphaTabApi` lifecycle, imports, playback, layout, looping, audio-only pitch and events.
-- `src/services/fretboardModel.js`: original source note string/fret/measure mapping and MIDI-channel protection.
-- `src/ui/fretboard.js`: **diagnostic table**, not the approved production vector fretboard.
-- `src/styles/app.css`: imports theme tokens, responsive shell and scoped player CSS. `tests/model.test.mjs` and `tests/browser.test.mjs`: meaningful regression assertions.
-- `assets/vendor/alphatab/`: **alphaTab 1.8.4 + one documented local getter fix** with ESM entry/core, worker/worklet, Bravura music font, Sonivox SF2 and separate licenses. Do not upgrade in C0–C1. Read `assets/vendor/README.md` before modification.
+`src/services/alphaTabAdapter.js` owns SDK lifecycle, file import, playback, score settings, looping, channel pitch shift and events. `src/services/fretboardModel.js` maps **original** note/string/fret data. `src/ui/fretboard.js` is a Stage B *diagnostic table*, not the production SVG fretboard.
 
-The POC imports files into memory (20 MiB limit); there is **no song or tuning database**. Automated tests used self-authored alphaTex + SDK-generated GP7 only. GP5/GPX have successful user manual reports; additional native formats are unverified.
+The local SDK bundle `assets/vendor/alphatab/` is alphaTab **1.8.4 with a one-line `loadedMidiInfo` worker getter fix**; retain its license, JS module, worker/worklet, Bravura and Sonivox assets exactly unless upgrading under a separate test gate. Details: `assets/vendor/README.md`.
 
-## Implemented foundation: Stage C0–C1
+## Musical correctness
 
-```
-index.html                      app shell and inert player template
-src/main.js                     slim bootstrap
-src/app/App.js                  page lifecycle, shared UI and player ownership
-src/app/router.js               dependency-free hash routes
-src/ui/pages/TuningPage.js      honest placeholder for C2–C5
-src/ui/pages/LibraryPage.js     honest placeholder for Stage D
-src/ui/pages/PlayerPage.js      existing Stage B controls integrated, one player
-src/styles/tokens.css           palette/typography/spacing
-src/styles/layout.css           nav, responsive shell and placeholders
-src/styles/player.css           isolate/adapt Stage B player styles
-src/services/alphaTabAdapter.js [PRESERVE behavior and vendor paths]
-src/services/fretboardModel.js  [PRESERVE source string mapping]
-```
+1. Stored guitar tuning arrays are MIDI pitches ordered by **string identity from lowest-sounding convention to highest-string convention** (index 0 = low string). Do **not sort notes by pitch**; atypical tunings may be non-monotonic.
+2. alphaTab's `staff.tuning` is high-to-low. `Note.string` is 1-based low-to-high. Conventional displayed guitar string 1 is the highest string. Convert explicitly, especially for 7/8 strings and capo.
+3. Playback pitch offset uses alphaTab's `changeTrackTranspositionPitch(...)` on safe melodic channels only, excluding percussion/protected channels. Do not rewrite score serialization, staff/TAB, original tuning/string/fret, or speed. Shared MIDI channel coupling remains a known limitation.
+4. Fretboard positions come from the score model and playback beat/tick events, never SVG scraping or transposed MIDI note guessing. Repeats/loops use the expanded playback tick timeline. Active beat positions are not guaranteed to be sample-accurate note sustains.
+5. Playback speed changes must not alter pitch; changing playback pitch must not alter speed.
 
-Do not create unused empty modules to satisfy the diagram. Separate views from SDK lifecycle. Do not create a second copy of the player to keep tests passing. Make `?test` route to the integrated player with the existing `window.stageB` test adapter hook, or provide fully equivalent test coverage explicitly.
+## Data boundaries and future modules
 
-**Implemented lifecycle:** create the alphaTab adapter only on first Player navigation, keep one instance and its live DOM subtree attached when visiting other pages, pause playback when the Player becomes hidden, retain imported score, track choices, position, zoom and pitch, and refresh its layout on return after the host becomes visible. Avoid duplicate listener registration on re-entry. No teardown is invoked on navigation. Player-only Space handling is attached once to the persistent page; links, forms and summary controls keep their native keyboard behavior.
+The personal Tuning Library owns its own domain (`src/domain/notes.js`, `tunings.js` when implemented), using independent objects instead of alphaTab score classes. Built-in presets are immutable; a user's modification is a custom record. Stage C adds original SVG headstock controls for 6 (3+3), 7 (3+4), 8 (4+4) strings, IndexedDB storage and independent Web Audio note audition in separate steps.
 
-Routing: `#/tuning` (default), `#/library`, `#/player`; `hashchange` and browser Back/Forward. Implement idempotent route transitions, focus behavior and unknown-route fallback. Routes need no server rewrites and must work under GitHub Pages `/GuitarTools_WebApp/`. The C0–C1 UI is dark graphite/charcoal with restrained copper accent, inspired by approved Stage A designs; no fake library entries or headstock controls until their stages.
+Later, the Song Library will store original GP blobs plus independent user metadata, collections and backup/export. Browser storage may fail, be cleared or evicted; protect users with clear errors and portable backup. Do not implement a new engraving engine.
 
-## Future stages (not part of C0–C1)
+## Test, accessibility & deployment invariants
 
-- C2–C5: `domain/notes.js`, `domain/tunings.js`, original vector headstocks and interactive tuning UI, `storage/db.js`, `storage/tuningRepository.js`, tuning JSON import/export and Web Audio audition service.
-- D: stored original GP Blobs in IndexedDB, song/collection metadata, duplicate detection, portable backup.
-- E: production track/transport/fretboard components consuming the existing adapter/score model.
+Keep the original `tests/model.test.mjs`, `tests/browser.test.mjs`, `tests/router.test.mjs` and `tests/shell.test.mjs` meaningful. The browser regression uses `?test` and `window.stageB`, plus certain Player control DOM IDs; preserve or explicitly migrate tests with equivalent coverage. Optional Playwright is a development-only dependency.
 
-## Non-negotiable musical contracts
-
-1. alphaTab's `staff.tuning` runs **high-to-low**. `Note.string` is **1-based low-to-high**. `position(note)` maps to conventional guitar string labels. Future tuning records use canonical MIDI pitches ordered by **string identity low-to-high**, without reordering by pitch (non-monotonic tunings are valid).
-2. Import the user's original binary; do not rewrite or silently transpose it. Player pitch transposition uses `changeTrackTranspositionPitch(...)` on supported melodic MIDI channels. Staff/TAB/fret numbers and original fretboard positions remain invariant. Shared/percussion channels may be coupled or excluded.
-3. Playback position, score rendering and fretboard source positions follow alphaTab's expanded tick timeline, including repeats; do not derive beats by wall-clock guesses or scrape rendered SVG.
-4. Change speed without changing pitch; change synthesizer pitch without changing speed or notation. Imported score tempo changes remain meaningful.
-5. Preserve licensed local font, worker, AudioWorklet and SoundFont asset resolution under a GitHub Pages subpath. Autoplay requires a direct user gesture.
-6. Browser storage in later stages is not a permanent guaranteed backup: include explicit exports/imports and quota/error handling before claiming durable user library storage.
-
-## Engineering quality
-
-Scope asset/style selectors to page roots, use `textContent` for untrusted GP metadata, provide focusable controls and visible focus, keep responsive page widths contained, and retain portable test fixtures and automated Stage B regressions. Actual Pages deployment and platform audio remain to be verified after user push.
+Use correct relative/module URLs for `.../GuitarTools_WebApp/`; worklets need HTTPS or localhost and user activation. Don't claim actual deployed Pages or native GP3/4/7/8 compatibility without evidence. Label controls accessibly, maintain focus/contrast/responsive layouts, avoid injecting untrusted metadata as HTML, and retain third-party license notices.
