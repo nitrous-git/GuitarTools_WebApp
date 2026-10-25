@@ -93,12 +93,6 @@
 .tuning-string-row select { padding: 7px; }
 .string-number, .string-midi { font: 10px var(--mono); color: var(--accent-light); }
 .tuning-category-assignment { margin: 16px 0; color: #a0b0bb; font: 10px var(--mono); text-transform: uppercase; }
-.tuning-category-assignment summary { list-style: none; }
-#tuning-collection-summary { display: block; border: 1px solid #465560; border-radius: 5px; padding: 10px 12px; margin-top: 8px; background: #12191f; color: var(--text); font: 14px/1.5 'Segoe UI', Arial, sans-serif; text-transform: none; overflow-wrap: anywhere; }
-#tuning-collection-summary::after { content: '⌄'; float: right; margin-left: 8px; }
-#tuning-category-choices { display: grid; gap: 8px; padding: 12px 0; max-height: 180px; overflow: auto; font: 12px/1.5 'Segoe UI', Arial, sans-serif; text-transform: none; }
-#tuning-category-choices label, .tuning-favorite { display: flex; align-items: center; gap: 8px; overflow-wrap: anywhere; }
-#tuning-category-choices input, .tuning-favorite input { width: 18px; height: 18px; flex-shrink: 0; accent-color: var(--accent); }
 #tuning-metadata { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; padding: 14px 0; border-top: 1px solid var(--border); color: #92a5b1; font: 10px/1.8 var(--mono); text-transform: uppercase; }
 #tuning-metadata strong { display: block; font-weight: 400; color: #d1dbe0; text-transform: none; }
 .tuning-reference { padding: 12px 16px; margin: 8px 0 0; border: 1px solid #38514e; background: #202e30; border-radius: 6px; color: #9abbb4; font-size: 11px; line-height: 1.6; }
@@ -109,8 +103,7 @@
 .tuning-more > summary { list-style: none; border: 1px solid #465560; border-radius: 5px; background: #252e36; padding: 7px 10px; min-height: 36px; text-align: center; font-size: 12px; font-weight: 600; }
 .tuning-more-content { position: absolute; bottom: calc(100% + 8px); right: 0; width: 296px; max-width: calc(100vw - 48px); max-height: 65dvh; overflow: auto; padding: 12px; background: #20272e; border: 1px solid #53616a; border-radius: 6px; z-index: 5; box-shadow: 0 12px 32px #0009; display: grid; gap: 8px; }
 .tuning-more-content button { width: 100%; text-align: left; }
-.tuning-more-content p, .tuning-favorite { font-size: 11px; margin: 8px 0; }
-.tuning-favorite span { color: var(--muted); font-size: 9px; }
+.tuning-more-content p { font-size: 11px; margin: 8px 0; }
 .tuning-category-management { border-block: 1px solid var(--border); padding: 10px 0; font-size: 12px; }
 .tuning-category-management label { display: grid; gap: 6px; margin: 10px 0; }
 .tuning-category-management button { margin: 5px 0; }
@@ -174,10 +167,28 @@
   .tuning-workstation { height: 754px; }
   .tuning-library { display: flex; flex-direction: column; overflow: hidden; }
   #tuning-presets { flex: 1; min-height: 120px; }
-  .tuning-collections { max-height: 180px; overflow: auto; flex-shrink: 0; }
+  .tuning-collections { max-height: 180px; overflow: hidden; flex-shrink: 0; }
   .tuning-editor-body { overflow-y: auto; min-height: 0; }
   .tuning-save-actions { flex-shrink: 0; }
   .headstock-workspace { width: min(100%, 720px); }
   .tuning-stage-heading { padding-block: 14px; }
   .tuning-stage-legend { margin-block: 8px; }
 }
+
+/* Compact cards have fixed tracks; empty list space never stretches content. */
+#tuning-presets { align-content: start; grid-auto-rows: 64px; }
+.tuning-page .tuning-preset { height: 64px; min-height: 64px; padding: 6px 22px 6px 46px; grid-template-rows: 18px 16px 12px; gap: 2px; align-content: start; }
+.tuning-preset strong, .preset-notes { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.preset-draft { line-height: 12px; }
+.tuning-collections { display: flex; flex-direction: column; overflow: hidden; }
+.tuning-collections .tuning-list-heading { flex-shrink: 0; }
+#tuning-collections { overflow-y: auto; min-height: 0; max-height: 180px; }
+.tuning-page #tuning-manage-collections { font-size: 22px; width: 32px; min-height: 32px; border: 1px solid var(--border); border-radius: 5px; }
+.tuning-page #tuning-delete { width: 100%; margin: 14px 0 4px; color: #e5a595; border-color: #755047; }
+#tuning-legacy-collections { color: var(--muted); font-size: 10px; }
+#tuning-no-selection { grid-column: 2 / -1; align-self: center; text-align: center; color: var(--muted); padding: 30px; }
+@media (max-width: 700px) { #tuning-no-selection { grid-column: 1; } }
+
+.tuning-details .tuning-field { margin: 12px 0 14px; }
+.tuning-details .tuning-field input, .tuning-details .tuning-field select, .tuning-details .tuning-field textarea { padding-block: 8px; line-height: 1.4; }
+.tuning-details textarea { min-height: 80px; }

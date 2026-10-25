@@ -90,10 +90,10 @@ test('backup round-trip preserves every field across 6/7/8 strings; safe merge s
   await repo.setPreference('previewVolume', .42);
   const original = await repo.snapshot(), parsed = parseBackup(serializeBackup(original));
   assert.deepEqual(parsed, original);
-  assert.deepEqual(await target.mergeSnapshot(parsed), { tunings: 3, categories: 1, skippedTunings: 0, skippedCategories: 0 });
+  assert.deepEqual(await target.mergeSnapshot(parsed), { tunings: 3, categories: 1, skippedTunings: 0, skippedCategories: 0, factoryPresets: 0 });
   assert.deepEqual(await target.snapshot(), original);
   await target.setPreference('previewVolume', .2);
-  assert.deepEqual(await target.mergeSnapshot(parsed), { tunings: 0, categories: 0, skippedTunings: 3, skippedCategories: 1 });
+  assert.deepEqual(await target.mergeSnapshot(parsed), { tunings: 0, categories: 0, skippedTunings: 3, skippedCategories: 1, factoryPresets: 0 });
   assert.equal(await target.getPreference('previewVolume'), .2);
   assert.equal((await target.listTunings()).length, 3);
 });
@@ -108,4 +108,40 @@ test('malformed and malicious backups rejected before any mutation', async () =>
   }
   assert.throws(() => parseBackup('{broken')); assert.throws(() => parseBackup(' '.repeat(MAX_BACKUP_BYTES + 1)));
   assert.deepEqual(await repo.snapshot(), parseBackup(JSON.stringify(value)));
+});
+
+
+test('factory metadata, deletion, v2 round-trip and v1 compatibility preserve personal records', async () => {
+  const { repo } = await setup(), target = (await setup()).repo;
+  const category = await repo.createCategory('Metal');
+  const legacy = await repo.createTuning({ ...source(), favorite: true, categoryIds: [category.id] });
+  const assigned = await repo.setFactoryPreset({ id: 'standard-e', collectionId: category.id, deleted: false });
+  await assert.rejects(repo.setFactoryPreset({ id: 'standard-e', collectionId: '', deleted: true }), /another tab/);
+  await repo.setFactoryPreset({ ...assigned, deleted: true }, assigned.updatedAt);
+  const original = await repo.snapshot(), text = serializeBackup(original);
+  assert.equal(JSON.parse(text).version, 2);
+  await target.mergeSnapshot(parseBackup(text));
+  assert.deepEqual(await target.snapshot(), original);
+  assert.deepEqual(await repo.getTuning(legacy.id), legacy);
+  await target.mergeSnapshot(parseBackup(text)); assert.deepEqual(await target.snapshot(), original);
+  const v1 = { ...JSON.parse(text), version: 1, preferences: { previewVolume: .4 } };
+  assert.deepEqual(parseBackup(JSON.stringify(v1)).tunings, original.tunings);
+  const legacyTarget = (await setup()).repo;
+  await legacyTarget.mergeSnapshot(parseBackup(JSON.stringify(v1)));
+  assert.deepEqual((await legacyTarget.snapshot()).tunings, original.tunings);
+  await repo.deleteCategory(category.id);
+  const state = (await repo.snapshot()).preferences.factoryPresets[0];
+  assert.equal(state.collectionId, ''); assert(state.deleted);
+  await assert.rejects(repo.setFactoryPreset({ id: 'no-such-preset', collectionId: '', deleted: true }));
+  await assert.rejects(repo.setFactoryPreset({ id: 'drop-d', collectionId: 'absent', deleted: false }));
+});
+
+test('factory state writes participate in atomic backup rollback', async () => {
+  const a = (await setup()).repo, b = (await setup()).repo;
+  await a.createTuning(source()); await a.setFactoryPreset({ id: 'drop-d', collectionId: '', deleted: true });
+  const put = IDBObjectStore.prototype.put;
+  IDBObjectStore.prototype.put = function(value) { if (value.key === 'factoryPresets') throw new Error('Injected factory failure'); return put.call(this, value); };
+  try { await assert.rejects(b.mergeSnapshot(await a.snapshot()), /factory failure/); }
+  finally { IDBObjectStore.prototype.put = put; }
+  assert.deepEqual(await b.listTunings(), []);
 });

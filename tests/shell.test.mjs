@@ -5,6 +5,7 @@ import http from 'node:http';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import assert from 'node:assert/strict';
+import { tuningCorrections } from './tuningCorrections.mjs';
 import { tuningReconstruction } from './tuningReconstruction.mjs';
 import { tuningIntegration } from './tuningIntegration.mjs';
 const require = createRequire(import.meta.url);
@@ -124,6 +125,7 @@ try {
   assert.equal(await page.getByLabel('String 6 full note', { exact: true }).inputValue(), '40');
   assert(!requests.some(url => url.includes('alphaTab')));
   console.log('PASS preset search, independent drafts, reset/reload, navigation retention, 6/7/8 peg editing, keyboard Enter/Space, MIDI boundaries, responsive 280–1760px');
+  await tuningCorrections({ browser, base });
   await tuningReconstruction({ browser, base });
   await tuningIntegration({ page, base, route, fits });
   await page.goto(`${base}?test#/player`);

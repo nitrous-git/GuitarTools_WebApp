@@ -6,13 +6,13 @@ export function parseBackup(text) {
   let value;
   try { value = JSON.parse(text); } catch { throw new Error('This file is not valid JSON.'); }
   object(value, ['format', 'version', 'exportedAt', 'tunings', 'categories', 'preferences']);
-  if (value.format !== BACKUP_FORMAT || value.version !== 1) throw new Error('Unsupported tuning backup format or version.');
+  if (value.format !== BACKUP_FORMAT || ![1, 2].includes(value.version)) throw new Error('Unsupported tuning backup format or version.');
   timestamp(value.exportedAt);
   if (!Array.isArray(value.tunings) || value.tunings.length > 10000 || !Array.isArray(value.categories) || value.categories.length > 2000) throw new Error('Invalid backup arrays or record limits.');
   return validateSnapshot(value);
 }
 export function serializeBackup(snapshot) {
-  return JSON.stringify({ format: BACKUP_FORMAT, version: 1, exportedAt: new Date().toISOString(), ...validateSnapshot(snapshot) }, null, 2);
+  return JSON.stringify({ format: BACKUP_FORMAT, version: 2, exportedAt: new Date().toISOString(), ...validateSnapshot(snapshot) }, null, 2);
 }
 export function previewMerge(incoming, current) {
   const counts = {};
@@ -21,6 +21,8 @@ export function previewMerge(incoming, current) {
     counts[key] = incoming[key].filter(record => !ids.has(record.id)).length;
     counts[`skipped${key[0].toUpperCase()}${key.slice(1)}`] = incoming[key].length - counts[key];
   }
+  const existing = new Set((current.preferences.factoryPresets || []).map(s => s.id));
+  counts.factoryPresets = (incoming.preferences.factoryPresets || []).filter(s => !existing.has(s.id)).length;
   return counts;
 }
 export function downloadBackup(text) {

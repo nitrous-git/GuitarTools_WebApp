@@ -6,7 +6,8 @@ export function createTuningRepository(open) {
   async function snapshot(tx) {
     const [tunings, categories, preferences] = await Promise.all(STORES.map(name => read(tx.objectStore(name).getAll())));
     const preview = preferences.find(p => p.key === 'previewVolume');
-    return validateSnapshot({ tunings, categories, preferences: preview ? { previewVolume: preview.value } : {} });
+    const factory = preferences.find(p => p.key === 'factoryPresets');
+    return validateSnapshot({ tunings, categories, preferences: { ...(preview ? { previewVolume: preview.value } : {}), ...(factory ? { factoryPresets: factory.value } : {}) } });
   }
   async function writeTuning(value, update) {
     return run('readwrite', async tx => {
@@ -36,6 +37,16 @@ export function createTuningRepository(open) {
       if (expectedUpdatedAt && old.updatedAt !== expectedUpdatedAt) throw new Error('This tuning changed in another tab. Refresh before deleting.');
       await read(tx.objectStore('tunings').delete(id));
     }),
+    setFactoryPreset: (value, expectedUpdatedAt) => run('readwrite', async tx => {
+      const current = await snapshot(tx), states = current.preferences.factoryPresets || [];
+      const old = states.find(s => s.id === value.id);
+      if (old?.updatedAt !== expectedUpdatedAt) throw new Error('This preset changed in another tab. Refresh storage before trying again.');
+      const state = { id: value.id, collectionId: value.collectionId, deleted: value.deleted, updatedAt: nextTimestamp(old?.updatedAt) };
+      current.preferences.factoryPresets = [...states.filter(s => s.id !== value.id), state];
+      validateSnapshot(current);
+      await read(tx.objectStore('preferences').put({ key: 'factoryPresets', value: current.preferences.factoryPresets }));
+      return state;
+    }),
     listCategories: () => run('readonly', async tx => (await snapshot(tx)).categories),
     createCategory: name => run('readwrite', async tx => {
       name = categoryName(name);
@@ -55,13 +66,17 @@ export function createTuningRepository(open) {
       await read(tx.objectStore('categories').put(value)); return value;
     }),
     deleteCategory: (id, expectedUpdatedAt) => run('readwrite', async tx => {
-      const { categories, tunings } = await snapshot(tx), old = categories.find(c => c.id === id);
+      const { categories, tunings, preferences } = await snapshot(tx), old = categories.find(c => c.id === id);
       if (!old) throw new Error('Category not found.');
       if (expectedUpdatedAt && old.updatedAt !== expectedUpdatedAt) throw new Error('Category changed in another tab. Refresh and retry.');
       const affected = [];
       for (const value of tunings) if (value.categoryIds.includes(id)) {
         const updated = { ...value, categoryIds: value.categoryIds.filter(key => key !== id), updatedAt: nextTimestamp(value.updatedAt) };
         await read(tx.objectStore('tunings').put(updated)); affected.push({ before: value, after: updated });
+      }
+      if (preferences.factoryPresets?.some(s => s.collectionId === id)) {
+        const value = preferences.factoryPresets.map(s => s.collectionId === id ? { ...s, collectionId: '', updatedAt: nextTimestamp(s.updatedAt) } : s);
+        await read(tx.objectStore('preferences').put({ key: 'factoryPresets', value }));
       }
       await read(tx.objectStore('categories').delete(id));
       return affected;
@@ -90,6 +105,10 @@ export function createTuningRepository(open) {
         }
         // Safe merge: a user's existing preference wins; a clean profile recovers the backup value.
         if (current.preferences.previewVolume === undefined && incoming.preferences.previewVolume !== undefined) await read(tx.objectStore('preferences').put({ key: 'previewVolume', value: incoming.preferences.previewVolume }));
+        const states = current.preferences.factoryPresets || [], ids = new Set(states.map(s => s.id));
+        const additions = (incoming.preferences.factoryPresets || []).filter(s => !ids.has(s.id));
+        if (additions.length) await read(tx.objectStore('preferences').put({ key: 'factoryPresets', value: [...states, ...additions] }));
+        counts.factoryPresets = additions.length;
         return counts;
       });
     }

@@ -37,35 +37,36 @@ export async function tuningIntegration({ page, base, route, fits }) {
   await page.waitForFunction(() => document.querySelector('#tuning-name').value.endsWith('(copy)'));
   const duplicate = (await snapshot(page)).tunings.find(t => t.name.endsWith('(copy)'));
   assert.notEqual(duplicate.id, six.id);
-  await page.locator('#tuning-name').fill('Favorite copy'); await openMore(); await page.locator('#tuning-favorite').check();
+  await page.locator('#tuning-name').fill('Favorite copy'); await page.locator('#tuning-collection').selectOption('favorites'); await page.locator('#tuning-save').click(); await ready(page); await openMore();
   await page.locator('.tuning-category-management summary').click();
   for (const name of ['Practice', 'Low tunings']) {
     await page.locator('#tuning-category-new').click();
-    await page.getByRole('dialog').getByLabel('Category name').fill(name); await confirm(page, 'create'); await ready(page);
+    await page.getByRole('dialog').getByLabel('Collection name').fill(name); await confirm(page, 'create'); await ready(page);
   }
   await page.locator('.tuning-more > summary').click();
-  await page.locator('.tuning-category-assignment > summary').click();
-  await page.locator('#tuning-category-choices').getByLabel('Practice', { exact: true }).check();
-  await page.locator('#tuning-category-choices').getByLabel('Low tunings', { exact: true }).check();
+  const membership = (await snapshot(page)).categories.find(c => c.name === 'Low tunings');
+  await page.locator('#tuning-collection').selectOption(membership.id);
   await page.locator('#tuning-save').click(); await ready(page);
   data = await snapshot(page); const updated = data.tunings.find(t => t.id === duplicate.id), category = data.categories.find(c => c.name === 'Low tunings');
-  assert.equal(updated.name, 'Favorite copy'); assert(updated.favorite); assert.equal(updated.categoryIds.length, 2); assert.equal(updated.createdAt, duplicate.createdAt);
+  assert.equal(updated.name, 'Favorite copy'); assert(!updated.favorite); assert.equal(updated.categoryIds.length, 1); assert.equal(updated.createdAt, duplicate.createdAt);
   await openFilters();
-  await page.selectOption('#tuning-view', 'favorites'); await page.locator('#tuning-search').fill('favorite');
+  await page.selectOption('#tuning-view', 'all'); await page.locator('#tuning-search').fill('favorite');
   await openFilters();
   await page.selectOption('#tuning-category-filter', category.id);
   assert.equal(await page.locator('.tuning-preset').count(), 1);
-  await page.selectOption('#tuning-sort', 'updated'); assert.equal(await page.locator('.tuning-preset strong').textContent(), 'Favorite copy ★');
+  await page.selectOption('#tuning-sort', 'updated'); assert.equal(await page.locator('.tuning-preset strong').textContent(), 'Favorite copy');
   await openMore();
   await page.selectOption('#tuning-category-manage', category.id); await page.locator('#tuning-category-rename').click();
-  await page.getByRole('dialog').getByLabel('Category name').fill('Heavy'); await confirm(page, 'rename'); await ready(page);
+  await page.getByRole('dialog').getByLabel('Collection name').fill('Heavy'); await confirm(page, 'rename'); await ready(page);
   await page.locator('#tuning-category-delete').click(); await confirm(page, 'delete'); await ready(page);
-  assert.equal((await snapshot(page)).tunings.find(t => t.id === duplicate.id).categoryIds.length, 1);
-  await openMore(); await page.locator('#tuning-delete').click(); await page.keyboard.press('Escape'); await ready(page);
+  assert.equal((await snapshot(page)).tunings.find(t => t.id === duplicate.id).categoryIds.length, 0);
+  if (await page.locator('.tuning-more').getAttribute('open') !== null) await page.locator('.tuning-more > summary').click();
+  await page.locator('#tuning-delete').click(); await page.keyboard.press('Escape'); await ready(page);
   assert((await snapshot(page)).tunings.some(t => t.id === duplicate.id));
-  await openMore(); await page.locator('#tuning-delete').click(); await confirm(page, 'delete'); await ready(page);
+  if (await page.locator('.tuning-more').getAttribute('open') !== null) await page.locator('.tuning-more > summary').click();
+  await page.locator('#tuning-delete').click(); await confirm(page, 'delete'); await ready(page);
   await page.reload(); await ready(page); assert(!(await snapshot(page)).tunings.some(t => t.id === duplicate.id));
-  console.log('PASS duplicate/rename/favorite, multiple categories, search/filter/sort, category rename/delete, Escape and confirmed tuning deletion');
+  console.log('PASS duplicate/rename/favorite, single collection, search/filter/sort, category rename/delete, Escape and confirmed tuning deletion');
 
   await page.locator(`[data-saved="${six.id}"]`).click();
   await page.locator('#tuning-name').fill('Unsaved protected');
@@ -100,7 +101,7 @@ export async function tuningIntegration({ page, base, route, fits }) {
   assert.deepEqual(await snapshot(clean), original);
   await importText(text); await confirm(clean, 'import'); await ready(clean);
   assert.deepEqual(await snapshot(clean), original);
-  for (const bad of ['{bad', text.replace('"version": 1', '"version": 99')]) {
+  for (const bad of ['{bad', text.replace('"version": 2', '"version": 99')]) {
     await importText(bad); await clean.waitForFunction(() => document.querySelector('#tuning-status').textContent.startsWith('Failed:'));
     assert.deepEqual(await snapshot(clean), original);
   }

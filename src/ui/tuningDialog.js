@@ -9,7 +9,7 @@ export function tuningDialog({ title, message, choices, value }) {
     dialog.append(heading, description);
     let input;
     if (value !== undefined) {
-      const label = document.createElement('label'); label.textContent = 'Category name';
+      const label = document.createElement('label'); label.textContent = 'Collection name';
       input = document.createElement('input'); input.value = value; input.maxLength = 80; input.required = true;
       label.append(input); dialog.append(label);
     }
@@ -19,7 +19,7 @@ export function tuningDialog({ title, message, choices, value }) {
       const button = document.createElement('button'); button.type = 'button'; button.textContent = text;
       button.dataset.choice = action;
       button.addEventListener('click', () => {
-        if (action !== 'cancel' && input && !input.value.trim()) { input.setCustomValidity('Enter a category name.'); input.reportValidity(); return; }
+        if (action !== 'cancel' && input && !input.value.trim()) { input.setCustomValidity('Enter a collection name.'); input.reportValidity(); return; }
         result = { action, value: input?.value.trim() }; dialog.close();
       }); actions.append(button);
     }

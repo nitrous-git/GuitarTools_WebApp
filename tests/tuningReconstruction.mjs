@@ -20,8 +20,8 @@ export async function tuningReconstruction({ browser, base }) {
     assert.deepEqual(await snapshot(), before);
     assert.equal(await page.locator('#tuning-library-count').textContent(), '1 SAVED');
     await page.locator('[data-collection=favorites]').click();
-    assert.equal(await page.locator('.tuning-preset').count(), 1);
-    await page.locator('.tuning-preset').click();
+    assert.equal(await page.locator('.tuning-preset').count(), 2);
+    await page.getByRole('button', { name: /Existing record/ }).click();
     assert.equal(await page.locator('[data-count="7"]').getAttribute('aria-pressed'), 'true');
     assert.equal(await page.locator('#tuning-save').textContent(), '✓ Saved');
     assert(await page.locator('#tuning-save').isDisabled());

@@ -11,7 +11,7 @@ export function stringMap(count) {
   return Array.from({ length: count }, (_, index) => ({
     id: `string-${count - index}`, index, number: count - index,
     side: index < leftCount ? 'left' : 'right',
-    row: index < leftCount ? index : count - 1 - index
+    row: index < leftCount ? leftCount - 1 - index : index - leftCount
   }));
 }
 export function validateTuning(tuning) {

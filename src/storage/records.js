@@ -45,9 +45,19 @@ export function validateSnapshot(snapshot) {
   for (const records of [tunings, categories]) if (new Set(records.map(r => r.id)).size !== records.length) throw new Error('Duplicate record IDs.');
   const ids = new Set(categories.map(c => c.id));
   if (tunings.some(t => t.categoryIds.some(key => !ids.has(key)))) throw new Error('A tuning refers to a missing category.');
-  object(snapshot.preferences, ['previewVolume']);
+  object(snapshot.preferences, ['previewVolume', 'factoryPresets']);
+  if (snapshot.preferences.factoryPresets !== undefined) {
+    const states = snapshot.preferences.factoryPresets;
+    if (!Array.isArray(states) || states.length > FACTORY_PRESETS.length || new Set(states.map(s => s.id)).size !== states.length) throw new Error('Invalid factory preset states.');
+    for (const state of states) {
+      object(state, ['id', 'collectionId', 'deleted', 'updatedAt']);
+      if (!FACTORY_PRESETS.some(p => p.id === state.id) || typeof state.deleted !== 'boolean') throw new Error('Invalid factory preset state.');
+      if (typeof state.collectionId !== 'string' || (state.collectionId !== '' && state.collectionId !== 'favorites' && !ids.has(state.collectionId))) throw new Error('Unknown factory collection.');
+      timestamp(state.updatedAt);
+    }
+  }
   if (snapshot.preferences.previewVolume !== undefined) volume(snapshot.preferences.previewVolume);
-  return { tunings, categories, preferences: { ...snapshot.preferences } };
+  return { tunings, categories, preferences: structuredClone(snapshot.preferences) };
 }
 export function uniqueId() {
   if (globalThis.crypto?.randomUUID) return crypto.randomUUID();

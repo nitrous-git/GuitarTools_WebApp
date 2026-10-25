@@ -44,9 +44,9 @@ test('validation rejects malformed, sparse, out-of-range records; accepts reentr
 });
 test('explicit 3+3 / 3+4 / 4+4 mapping has unique ordered nut and peg anchors', () => {
   const expected = {
-    6: [[6, 'left', 0], [5, 'left', 1], [4, 'left', 2], [3, 'right', 2], [2, 'right', 1], [1, 'right', 0]],
-    7: [[7, 'left', 0], [6, 'left', 1], [5, 'left', 2], [4, 'right', 3], [3, 'right', 2], [2, 'right', 1], [1, 'right', 0]],
-    8: [[8, 'left', 0], [7, 'left', 1], [6, 'left', 2], [5, 'left', 3], [4, 'right', 3], [3, 'right', 2], [2, 'right', 1], [1, 'right', 0]]
+    6: [[6, 'left', 2], [5, 'left', 1], [4, 'left', 0], [3, 'right', 0], [2, 'right', 1], [1, 'right', 2]],
+    7: [[7, 'left', 2], [6, 'left', 1], [5, 'left', 0], [4, 'right', 0], [3, 'right', 1], [2, 'right', 2], [1, 'right', 3]],
+    8: [[8, 'left', 3], [7, 'left', 2], [6, 'left', 1], [5, 'left', 0], [4, 'right', 0], [3, 'right', 1], [2, 'right', 2], [1, 'right', 3]]
   };
   for (const count of [6, 7, 8]) {
     assert.deepEqual(stringMap(count).map(s => [s.number, s.side, s.row]), expected[count]);
