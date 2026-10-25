@@ -1,22 +1,22 @@
 # Guitar Tools — Architecture & Invariants
 
-Updated 2026-10-24. Distinguish **implemented Stage B** from **planned Stage C**; target module names below are guidance, not existing source until coded.
+Updated 2026-10-24. Stage C0–C1 is implemented on `stage-c-app-foundation`; browser acceptance is pending. The Stage B engine remains unchanged.
 
-## Implemented today (`master`)
+## Preserved Stage B engine
 
-- `index.html` + `src/main.js`: one-page Stage B player test bench; currently owns all DOM and control wiring.
+- `index.html`: shell plus inert player template. `src/main.js`: application bootstrap. `src/ui/pages/PlayerPage.js`: extracted Stage B control wiring, initialized once on first Player visit.
 - `src/services/alphaTabAdapter.js`: alphaTab `AlphaTabApi` lifecycle, imports, playback, layout, looping, audio-only pitch and events.
 - `src/services/fretboardModel.js`: original source note string/fret/measure mapping and MIDI-channel protection.
 - `src/ui/fretboard.js`: **diagnostic table**, not the approved production vector fretboard.
-- `src/styles/app.css`: prototype styling. `tests/model.test.mjs` and `tests/browser.test.mjs`: meaningful regression assertions.
+- `src/styles/app.css`: imports theme tokens, responsive shell and scoped player CSS. `tests/model.test.mjs` and `tests/browser.test.mjs`: meaningful regression assertions.
 - `assets/vendor/alphatab/`: **alphaTab 1.8.4 + one documented local getter fix** with ESM entry/core, worker/worklet, Bravura music font, Sonivox SF2 and separate licenses. Do not upgrade in C0–C1. Read `assets/vendor/README.md` before modification.
 
-The POC imports files into memory (20 MiB limit); there is **no song database, tuning database or production routing yet**. Automated tests used self-authored alphaTex + SDK-generated GP7 only. GP5/GPX have successful user manual reports; additional native formats are unverified.
+The POC imports files into memory (20 MiB limit); there is **no song or tuning database**. Automated tests used self-authored alphaTex + SDK-generated GP7 only. GP5/GPX have successful user manual reports; additional native formats are unverified.
 
-## Immediate target: Stage C0–C1
+## Implemented foundation: Stage C0–C1
 
 ```
-index.html                      app host (replace prototype structure)
+index.html                      app shell and inert player template
 src/main.js                     slim bootstrap
 src/app/App.js                  page lifecycle, shared UI and player ownership
 src/app/router.js               dependency-free hash routes
@@ -32,7 +32,7 @@ src/services/fretboardModel.js  [PRESERVE source string mapping]
 
 Do not create unused empty modules to satisfy the diagram. Separate views from SDK lifecycle. Do not create a second copy of the player to keep tests passing. Make `?test` route to the integrated player with the existing `window.stageB` test adapter hook, or provide fully equivalent test coverage explicitly.
 
-**Recommended lifecycle:** create the alphaTab adapter only on first Player navigation, keep one instance and its live DOM subtree attached when visiting other pages, pause playback when the Player becomes hidden, retain imported score, track choices, position, zoom and pitch, and refresh its layout on return after the host becomes visible. Avoid duplicate listener registration on re-entry. Only dispose it on full application shutdown if the SDK explicitly supports it. Ensure a hidden player does not continue unwanted audio.
+**Implemented lifecycle:** create the alphaTab adapter only on first Player navigation, keep one instance and its live DOM subtree attached when visiting other pages, pause playback when the Player becomes hidden, retain imported score, track choices, position, zoom and pitch, and refresh its layout on return after the host becomes visible. Avoid duplicate listener registration on re-entry. No teardown is invoked on navigation. Player-only Space handling is attached once to the persistent page; links, forms and summary controls keep their native keyboard behavior.
 
 Routing: `#/tuning` (default), `#/library`, `#/player`; `hashchange` and browser Back/Forward. Implement idempotent route transitions, focus behavior and unknown-route fallback. Routes need no server rewrites and must work under GitHub Pages `/GuitarTools_WebApp/`. The C0–C1 UI is dark graphite/charcoal with restrained copper accent, inspired by approved Stage A designs; no fake library entries or headstock controls until their stages.
 

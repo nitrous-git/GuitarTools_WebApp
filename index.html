@@ -3,16 +3,30 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#171c24">
-  <title>Guitar Tools — Stage B POC</title>
+  <meta name="theme-color" content="#101419">
+  <title>Guitar Tools</title>
   <link rel="icon" href="./favicon.svg">
   <link rel="stylesheet" href="./src/styles/app.css">
 </head>
 <body>
-<header><strong>Guitar Tools</strong><span>Stage B · alphaTab 1.8.4 technical POC</span></header>
-<main>
-  <h1>Notation & playback test bench</h1>
-  <p>Local files stay in this browser tab. Nothing is uploaded or saved. This is not the production interface.</p>
+  <a class="skip-link" href="#workspace">Skip to workspace</a>
+  <header class="topbar">
+    <a class="brand" href="#/tuning" aria-label="Guitar Tools home"><span class="brandmark" aria-hidden="true">♫</span><strong>Guitar<span>Tools</span></strong></a>
+    <nav aria-label="Main navigation">
+      <a href="#/tuning" data-route="tuning">Tuning Library</a>
+      <a href="#/library" data-route="library">Song Library</a>
+      <a href="#/player" data-route="player">Tab Player</a>
+    </nav>
+    <span class="workspace-label">GUITAR WORKSPACE</span>
+  </header>
+  <main id="workspace" tabindex="-1"></main>
+  <noscript>This workspace needs JavaScript enabled to navigate and play scores.</noscript>
+  <footer class="app-footer"><span>Guitar Tools · Application foundation</span><span>alphaTab: MPL-2.0 · Bravura: SIL OFL · Sonivox: Apache-2.0 · <a href="./assets/vendor/README.md">Vendor notices</a></span></footer>
+  <template id="player-template">
+
+  <p class="eyebrow">Practice / Guitar Pro reader</p>
+  <h1 id="player-title" tabindex="-1">Tab Player</h1>
+  <p>Open a Guitar Pro file or try the original exercise. Files stay in memory for this tab; nothing is uploaded or saved.</p>
   <section aria-label="Load score" class="controls">
     <label>Guitar Pro file (max 20 MiB)<input id="file" type="file" accept=".gp3,.gp4,.gp5,.gpx,.gp"></label>
     <button id="sample">Load original exercise</button>
@@ -65,8 +79,8 @@
     <pre id="diagnostic">Waiting for score…</pre>
   </section>
   <details><summary>Event log</summary><pre id="log"></pre></details>
-</main>
-<footer>alphaTab: MPL-2.0 · Bravura: SIL OFL · Sonivox: Apache-2.0. See <a href="./assets/vendor/README.md">vendor notices</a>.</footer>
-<script type="module" src="./src/main.js"></script>
+
+  </template>
+  <script type="module" src="./src/main.js"></script>
 </body>
 </html>
