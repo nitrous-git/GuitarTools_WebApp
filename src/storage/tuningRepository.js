@@ -1,4 +1,4 @@
-import { transaction, requestResult as read, STORES } from './db.js';
+import { transaction, requestResult as read, TUNING_STORES as STORES } from './db.js';
 import { validateRecord, validateCategory, validateSnapshot, categoryName, uniqueId, nextTimestamp, volume } from './records.js';
 
 export function createTuningRepository(open) {

@@ -468,6 +468,16 @@ export function createTuningPage() {
     });
   });
   selectPreset(factories()[0]);
-  refresh().catch(error => { storageReady = false; $('#tuning-storage-status').textContent = storageMessage(error); sync(); });
-  return { element, show() { element.hidden = false; }, hide() { audio.stop(); element.hidden = true; } };
+  const ready = refresh().catch(error => { storageReady = false; $('#tuning-storage-status').textContent = storageMessage(error); sync(); });
+  return { element,
+    async openSourceTuning({ name, notesLowToHigh }) {
+      await ready;
+      if (busy) throw new Error('Finish the current tuning operation, then retry.');
+      if (![6, 7, 8].includes(notesLowToHigh.length) || notesLowToHigh.some(n => !Number.isInteger(n) || n < 0 || n > 127)) throw new Error('Unsupported source tuning.');
+      // Every source opens a new draft; all existing saved and unsaved drafts survive.
+      const fresh = { id: `new-${++newSequence}`, isNew: true, name: name.slice(0, 80), description: 'Original source tuning (before capo).', stringCount: notesLowToHigh.length, notesLowToHigh: [...notesLowToHigh], favorite: false, categoryIds: [] };
+      $('#tuning-view').value = 'all'; $('#tuning-category-filter').value = ''; query = ''; $('#tuning-search').value = '';
+      selectPreset(fresh); message = 'Source tuning opened as a new unsaved draft. Other drafts are kept.'; sync();
+    },
+    show() { element.hidden = false; refresh().catch(error => { message = storageMessage(error); sync(); }); }, hide() { audio.stop(); element.hidden = true; } };
 }

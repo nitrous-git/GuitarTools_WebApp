@@ -12,10 +12,11 @@ export function createPlayerPage() {
   const run = fn => async () => { try { $('error').hidden = true; await fn(); } catch (e) { failure(e); } };
   const time = ms => `${Math.floor(ms / 60000)}:${String(Math.floor(ms / 1000) % 60).padStart(2, '0')}`;
   let adapter;
-  let started = false;
+  let initialization;
+  let externalLoad = 0;
   let visible = false;
   let renderFrame;
-  async function initialize() {
+  async function initialize(skipDemo = false) {
     try {
       const { AlphaTabAdapter } = await import('../../services/alphaTabAdapter.js');
       adapter = new AlphaTabAdapter($('score'));
@@ -94,18 +95,25 @@ export function createPlayerPage() {
       });
       // Explicit opt-in test hook; absent during normal use.
       if (new URLSearchParams(location.search).has('test')) window.stageB = adapter;
-      await adapter.sample();
-    } catch (e) { console.error(e); failure(`Startup failed: ${e.message}. Use HTTP hosting and check the bundled SDK files.`); }
+      if (!skipDemo) await adapter.sample();
+    } catch (e) { console.error(e); failure(`Startup failed: ${e.message}. Use HTTP hosting and check the bundled SDK files.`); throw e; }
 
   }
   return {
     element,
+    async loadFile(file) {
+      const request = ++externalLoad;
+      initialization ||= initialize(true);
+      await initialization;
+      if (request !== externalLoad) return;
+      await adapter.importFile(file);
+    },
     show() {
       visible = true;
       element.hidden = false;
-      if (!started) {
-        started = true;
-        void initialize();
+      if (!initialization) {
+        initialization = initialize();
+        initialization.catch(() => {});
       } else if (adapter?.api.score) {
         // Existing public render API; no score reload, MIDI rebuild or new synth.
         cancelAnimationFrame(renderFrame);

@@ -64,12 +64,17 @@ try {
     await page.setViewportSize({ width, height: 900 });
     for (const name of ['tuning', 'library']) {
       await route(name); await fits();
-      if (name === 'library') assert.equal(await page.locator('#workspace article:not([hidden]) button').count(), 0);
+      if (name === 'library') {
+        assert(await page.locator('#library-search').isVisible());
+        assert(await page.locator('.library-heading [data-action=import]').isVisible());
+        assert.equal(await page.locator('#library-rows tr').count(), 0);
+        assert(await page.locator('#library-empty').isVisible());
+      }
       else assert.equal(await page.locator('.headstock-peg').count(), 6);
       if (process.env.SCREENSHOT_DIR) await page.screenshot({ path: path.join(process.env.SCREENSHOT_DIR, `${name}-${width}.png`), fullPage: true });
     }
   }
-  console.log('PASS default/direct/reload/history/fallback, lazy SDK, tuning interface, Song placeholder, keyboard skip link, desktop/mobile');
+  console.log('PASS default/direct/reload/history/fallback, lazy SDK, tuning interface, Song Library empty state, keyboard skip link, desktop/mobile');
   await route('tuning');
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.locator('[data-preset="drop-c"]').click();

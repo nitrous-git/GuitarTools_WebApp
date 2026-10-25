@@ -1,7 +1,9 @@
-// Guitar Tools schema v1. Future Song Library upgrades must retain these stores.
+// Additive schema migration: never delete the Stage C stores.
 export const DB_NAME = 'guitar-tools-user-data';
-export const DB_VERSION = 1;
-export const STORES = ['tunings', 'categories', 'preferences'];
+export const DB_VERSION = 2;
+export const TUNING_STORES = ['tunings', 'categories', 'preferences'];
+export const SONG_STORES = ['songFiles', 'songs', 'songCollections'];
+export const STORES = [...TUNING_STORES, ...SONG_STORES];
 let connection;
 export function openDatabase() {
   if (connection) return connection;

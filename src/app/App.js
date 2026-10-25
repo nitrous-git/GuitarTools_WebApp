@@ -9,15 +9,28 @@ export class App {
     if (this.stopRouter) return;
     this.stopRouter = startRouter((route, initial) => this.navigate(route, initial));
   }
+  page(route) {
+    if (!this.pages.has(route)) {
+      const page = { tuning: createTuningPage, library: createLibraryPage, player: createPlayerPage }[route]({
+        openSong: async file => {
+          const player = this.page('player');
+          const loading = player.loadFile(file);
+          location.hash = '#/player'; this.navigate('player', false);
+          await loading;
+        },
+        openTuning: async tuning => {
+          await this.page('tuning').openSourceTuning(tuning);
+          location.hash = '#/tuning'; this.navigate('tuning', false);
+        }
+      });
+      this.pages.set(route, page); this.host.append(page.element);
+    }
+    return this.pages.get(route);
+  }
   navigate(route, initial) {
     if (this.current === route) return;
     this.pages.get(this.current)?.hide();
-    if (!this.pages.has(route)) {
-      const page = { tuning: createTuningPage, library: createLibraryPage, player: createPlayerPage }[route]();
-      this.pages.set(route, page);
-      this.host.append(page.element);
-    }
-    const page = this.pages.get(route);
+    const page = this.page(route);
     this.current = route;
     page.show();
     for (const link of document.querySelectorAll('[data-route]')) {
