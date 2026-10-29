@@ -1,9 +1,9 @@
 // Additive schema migration: never delete the Stage C stores.
 export const DB_NAME = 'guitar-tools-user-data';
-export const DB_VERSION = 2;
+export const DB_VERSION = 3;
 export const TUNING_STORES = ['tunings', 'categories', 'preferences'];
 export const SONG_STORES = ['songFiles', 'songs', 'songCollections'];
-export const STORES = [...TUNING_STORES, ...SONG_STORES];
+export const STORES = [...TUNING_STORES, ...SONG_STORES, 'drumProjects'];
 let connection;
 export function openDatabase() {
   if (connection) return connection;

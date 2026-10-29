@@ -3,6 +3,8 @@ import { createTuningPage } from '../ui/pages/TuningPage.js';
 import { createLibraryPage } from '../ui/pages/LibraryPage.js';
 import { createPlayerPage } from '../ui/pages/PlayerPage.js';
 
+import { createDrumAssistantPage } from '../ui/pages/DrumAssistantPage.js';
+
 export class App {
   constructor(host) { this.host = host; this.pages = new Map(); }
   start() {
@@ -11,7 +13,7 @@ export class App {
   }
   page(route) {
     if (!this.pages.has(route)) {
-      const page = { tuning: createTuningPage, library: createLibraryPage, player: createPlayerPage }[route]({
+      const page = { tuning: createTuningPage, library: createLibraryPage, player: createPlayerPage, 'drum-assistant': createDrumAssistantPage }[route]({
         openSong: async file => {
           const player = this.page('player');
           const loading = player.loadFile(file);

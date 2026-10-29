@@ -2,7 +2,7 @@
 
 ## Runtime & existing modules
 
-Static `index.html` plus vanilla ES modules, deployable to a GitHub Pages repository subpath. `src/main.js` bootstraps `src/app/App.js` and `src/app/router.js`. Three hash routes: `#/tuning` (default), `#/library`, `#/player`. `App` retains page instances. `src/ui/pages/PlayerPage.js` owns its page controls and hosts a **single, lazy** `AlphaTabAdapter`, preserving player state across navigation; leaving Player pauses audio. Tuning and Song pages evolve independently. Shared CSS: `src/styles/tokens.css`, `layout.css`, `player.css`.
+Static `index.html` plus vanilla ES modules, deployable to a GitHub Pages repository subpath. `src/main.js` bootstraps `src/app/App.js` and `src/app/router.js`. Four hash routes: `#/tuning` (default), `#/library`, `#/player`, `#/drum-assistant`. `App` retains page instances. `src/ui/pages/PlayerPage.js` owns its page controls and hosts a **single, lazy** `AlphaTabAdapter`, preserving player state across navigation; leaving Player pauses audio. Tuning and Song pages evolve independently. Shared CSS: `src/styles/tokens.css`, `layout.css`, `player.css`.
 
 `src/services/alphaTabAdapter.js` owns SDK lifecycle, file import, playback, score settings, looping, channel pitch shift and events. `src/services/fretboardModel.js` maps **original** note/string/fret data. `src/ui/fretboard.js` is a Stage B *diagnostic table*, not the production SVG fretboard.
 
@@ -27,3 +27,11 @@ Later, the Song Library will store original GP blobs plus independent user metad
 Keep the original `tests/model.test.mjs`, `tests/browser.test.mjs`, `tests/router.test.mjs` and `tests/shell.test.mjs` meaningful. The browser regression uses `?test` and `window.stageB`, plus certain Player control DOM IDs; preserve or explicitly migrate tests with equivalent coverage. Optional Playwright is a development-only dependency.
 
 Use correct relative/module URLs for `.../GuitarTools_WebApp/`; worklets need HTTPS or localhost and user activation. Don't claim actual deployed Pages or native GP3/4/7/8 compatibility without evidence. Label controls accessibly, maintain focus/contrast/responsive layouts, avoid injecting untrusted metadata as HTML, and retain third-party license notices.
+
+## Drum reference workstation
+
+`DrumAssistantPage` retains its own shared-clock Web Audio transport and pauses it on hide. Processing excerpt, visible viewport and absolute-time hit regions are independent. Original audio and imported drum stems share a timeline; a nonnegative stem offset supports excerpt exports. Audio stays in memory and is never uploaded by this workstation. The separation-provider contract is deliberately unavailable until a real provider is integrated.
+
+The dependency-free STFT estimator measures persistent resonant tones from 120 ms–2 s regions. A measurable lower harmonic can override a stronger overtone; noisy or unstable regions remain uncertain. Only confirmed, usable, non-outlier measurements enter a drum's median reference. These are not validated acoustic fundamentals or head-tension measurements.
+
+Database v3 adds `drumProjects` without altering existing stores. References save labels, source fingerprints, markers, measurements and excerpts, without audio bytes. Reimport is required for playback or re-analysis; source replacement invalidates affected measurements. Existing Song Library ZIP backups do **not** include drum references.

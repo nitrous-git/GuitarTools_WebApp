@@ -1,4 +1,4 @@
-export const routes = Object.freeze({ tuning: 'Tuning Library', library: 'Song Library', player: 'Tab Player' });
+export const routes = Object.freeze({ tuning: 'Tuning Library', library: 'Song Library', player: 'Tab Player', 'drum-assistant': 'Drum Tune Assistant' });
 
 export function resolveRoute(hash, testMode = false) {
   if (!hash) return testMode ? 'player' : 'tuning';
